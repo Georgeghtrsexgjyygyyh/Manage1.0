@@ -105,7 +105,7 @@
         #call-overlay { position: fixed; inset: 0; background: #000; z-index: 3000; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         #call-overlay.active { opacity: 1; pointer-events: auto; }
         .video-grid { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        video { background: #000; }
+        video { background: #000; width: 100%; height: 100%; object-fit: cover; }
         #remote-video { width: 100%; height: 100%; object-fit: contain; }
         #local-video { position: absolute; bottom: 100px; right: 20px; width: 120px; height: 160px; border-radius: 12px; border: 2px solid white; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 3002; transition: all 0.3s; }
         #local-video.dragging { opacity: 0.8; }
@@ -250,6 +250,7 @@
 
     <div id="call-overlay">
         <div class="call-status-pill" id="call-status-text">Connecting...</div>
+        <div class="call-duration" id="call-duration" style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); color: white; font-size: 14px; z-index: 3003; background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 20px; display: none;"></div>
         
         <div class="video-grid">
             <video id="remote-video" autoplay playsinline></video>
@@ -272,8 +273,7 @@
         import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-        // 🔧 ИСПРАВЛЕНИЕ #1: Добавлены переносы строк
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        
 const firebaseConfig = {
   apiKey: "AIzaSyDXsvsaG8IdcjZv4iG4WHjPneGvcxywuTk",
   authDomain: "bobba-591c5.firebaseapp.com",
@@ -283,7 +283,6 @@ const firebaseConfig = {
   appId: "1:839501020120:web:0e58d4759785a1fadfd0ad",
   measurementId: "G-C3D5TB22F0"
 };
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -298,10 +297,13 @@ const firebaseConfig = {
             localStream: null,
             unsubscribeChat: null,
             isCalling: false,
-            callStartTime: null
+            callStartTime: null,
+            callDurationInterval: null,
+            tempCall: null,
+            callTimeout: null,
+            incomingTimeout: null
         };
 
-        // 🔧 ИСПРАВЛЕНИЕ #2: Улучшен UI Manager
         class UIManager {
             constructor() {
                 this.dom = {
@@ -383,9 +385,18 @@ const firebaseConfig = {
             showProfileSettings() {
                 App.ui.toast("Profile settings coming soon!", "info");
             }
+
+            updateCallDuration() {
+                if (!State.callStartTime) return;
+                const elapsed = Math.floor((Date.now() - State.callStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                const durationEl = document.getElementById('call-duration');
+                durationEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                durationEl.style.display = 'block';
+            }
         }
 
-        // 🔧 ИСПРАВЛЕНИЕ #3: Полностью переписан AuthService
         class AuthService {
             constructor() {
                 this.isRegistering = false;
@@ -466,7 +477,6 @@ const firebaseConfig = {
             }
         }
 
-        // 🔧 ИСПРАВЛЕНИЕ #4: Улучшен ChatService
         class ChatService {
             async loadContacts() {
                 if(!State.user || !State.user.contacts) return;
@@ -669,7 +679,6 @@ const firebaseConfig = {
             }
         }
 
-        // 🔧 ИСПРАВЛЕНИЕ #5: Полностью переписан CallService
         class CallService {
             constructor() {
                 this.audioCtx = null;
@@ -678,21 +687,21 @@ const firebaseConfig = {
             }
 
             init() {
-                // Генерация безопасного Peer ID
-                const safeNick = State.user.nickname.replace(/\W/g, '').substring(0, 20);
-                const safeUid = State.user.uid.substring(0, 8);
-                const peerId = `${safeNick}_${safeUid}`;
+                // 🔧 ИСПРАВЛЕНИЕ #1: Используем только UID для генерации Peer ID
+                const peerId = State.user.uid;
                 
                 console.log("Initializing PeerJS with ID:", peerId);
 
-                // 🔧 ИСПРАВЛЕНИЕ #6: Добавлены STUN/TURN серверы
+                // 🔧 ИСПРАВЛЕНИЕ #2: Улучшена конфигурация ICE серверов
                 this.peer = new Peer(peerId, {
                     config: {
                         iceServers: [
                             { urls: 'stun:stun.l.google.com:19302' },
                             { urls: 'stun:stun1.l.google.com:19302' },
                             { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
-                        ]
+                        ],
+                        iceCandidatePoolSize: 10,
+                        iceTransportPolicy: 'all'
                     },
                     debug: 2 // Включаем дебаг для отладки
                 });
@@ -777,17 +786,26 @@ const firebaseConfig = {
 
             async getStream() {
                 try {
-                    // 🔧 ИСПРАВЛЕНИЕ #7: Улучшено получение видеопотока
+                    // 🔧 ИСПРАВЛЕНИЕ #3: Адаптивные ограничения для мобильных устройств
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    
                     const constraints = {
-                        video: {
+                        video: isMobile ? {
+                            width: { ideal: 640, max: 1280 },
+                            height: { ideal: 480, max: 720 },
+                            facingMode: 'user',
+                            frameRate: { ideal: 24, max: 30 }
+                        } : {
                             width: { ideal: 1280, max: 1920 },
                             height: { ideal: 720, max: 1080 },
-                            facingMode: 'user'
+                            facingMode: 'user',
+                            frameRate: { ideal: 30, max: 60 }
                         },
                         audio: {
                             echoCancellation: true,
                             noiseSuppression: true,
-                            autoGainControl: true
+                            autoGainControl: true,
+                            sampleRate: 48000
                         }
                     };
 
@@ -798,19 +816,32 @@ const firebaseConfig = {
 
                     const stream = await navigator.mediaDevices.getUserMedia(constraints);
                     State.localStream = stream;
-                    const localVideo = document.getElementById('local-video');
-                    localVideo.srcObject = stream;
                     
-                    // Обработка ошибок треков
+                    // 🔧 ИСПРАВЛЕНИЕ #4: Добавляем обработку ошибок для каждого трека
                     stream.getTracks().forEach(track => {
                         track.onended = () => {
                             console.log("Track ended:", track.kind);
                             if(State.currentCall) {
-                                this.endCall();
+                                App.ui.toast(`${track.kind} device disconnected`, "warning");
+                                if (track.kind === 'video') {
+                                    // Try to restart video
+                                    this.replaceVideoTrack();
+                                }
                             }
+                        };
+                        
+                        track.onmute = () => {
+                            console.log("Track muted:", track.kind);
+                        };
+                        
+                        track.onunmute = () => {
+                            console.log("Track unmuted:", track.kind);
                         };
                     });
 
+                    const localVideo = document.getElementById('local-video');
+                    localVideo.srcObject = stream;
+                    
                     return stream;
                 } catch (e) {
                     console.error("Stream error:", e);
@@ -818,6 +849,7 @@ const firebaseConfig = {
                     if(e.name === 'NotFoundError') errorMsg = "No camera/microphone found";
                     if(e.name === 'NotAllowedError') errorMsg = "Please allow camera access";
                     if(e.name === 'OverconstrainedError') errorMsg = "Camera resolution not supported";
+                    if(e.name === 'NotReadableError') errorMsg = "Camera is already in use";
                     
                     App.ui.toast(errorMsg, 'error');
                     throw e;
@@ -825,25 +857,30 @@ const firebaseConfig = {
             }
 
             handleIncomingCall(call) {
+                // 🔧 ИСПРАВЛЕНИЕ #5: Проверяем состояние перед принятием звонка
                 if (State.currentCall) {
                     console.log("Busy, rejecting call");
                     call.close(); 
                     return;
                 }
                 
-                this.tempCall = call;
+                // Сохраняем временный вызов
+                State.tempCall = call;
                 
-                // Парсим имя вызывающего
-                const callerRaw = call.peer.split('_')[0] || 'Unknown';
-                document.getElementById('caller-name').innerText = callerRaw;
-                document.getElementById('caller-avatar').innerText = callerRaw[0]?.toUpperCase() || '?';
+                // Парсим имя вызывающего (теперь это UID)
+                const callerUid = call.peer;
+                const callerContact = State.contactsMap[callerUid];
+                const callerName = callerContact ? callerContact.nickname : 'Unknown';
+                
+                document.getElementById('caller-name').innerText = callerName;
+                document.getElementById('caller-avatar').innerText = callerName[0]?.toUpperCase() || '?';
                 
                 document.getElementById('incoming-modal').classList.add('show');
                 this.playRing('incoming');
                 
-                // Автоотклонение через 30 секунд
-                this.incomingTimeout = setTimeout(() => {
-                    if(this.tempCall) {
+                // 🔧 ИСПРАВЛЕНИЕ #6: Автоотклонение через 30 секунд
+                State.incomingTimeout = setTimeout(() => {
+                    if(State.tempCall) {
                         this.rejectCall();
                         App.ui.toast("Call missed", "warning");
                     }
@@ -851,15 +888,30 @@ const firebaseConfig = {
             }
 
             async acceptCall() {
-                clearTimeout(this.incomingTimeout);
+                clearTimeout(State.incomingTimeout);
                 this.stopRing();
                 document.getElementById('incoming-modal').classList.remove('show');
                 
                 try {
+                    // Получаем поток ДО ответа на звонок
                     const stream = await this.getStream();
-                    this.tempCall.answer(stream);
-                    this.setupCallEvents(this.tempCall);
+                    
+                    // Отвечаем на вызов
+                    State.tempCall.answer(stream);
+                    
+                    // Настраиваем события
+                    this.setupCallEvents(State.tempCall);
+                    
+                    // Показываем UI
+                    document.getElementById('call-overlay').classList.add('active');
+                    document.getElementById('call-status-text').innerText = "Connecting...";
+                    document.getElementById('call-status-text').style.display = 'block';
+                    
                     App.ui.toast("Call accepted", "success");
+                    
+                    // Очищаем временный вызов
+                    State.tempCall = null;
+                    
                 } catch (e) {
                     console.error("Accept call error:", e);
                     this.rejectCall();
@@ -868,12 +920,12 @@ const firebaseConfig = {
             }
 
             rejectCall() {
-                clearTimeout(this.incomingTimeout);
+                clearTimeout(State.incomingTimeout);
                 this.stopRing();
                 document.getElementById('incoming-modal').classList.remove('show');
-                if(this.tempCall) {
-                    this.tempCall.close();
-                    this.tempCall = null;
+                if(State.tempCall) {
+                    State.tempCall.close();
+                    State.tempCall = null;
                 }
             }
 
@@ -883,31 +935,38 @@ const firebaseConfig = {
                     return;
                 }
                 
-                // Генерация Peer ID для вызываемого
-                const targetNick = State.activeContact.nickname.replace(/\W/g, '').substring(0, 20);
-                const targetUid = State.activeContact.uid.substring(0, 8);
-                const targetPeerId = `${targetNick}_${targetUid}`;
+                // 🔧 ИСПРАВЛЕНИЕ #7: Используем UID как Peer ID
+                const targetPeerId = State.activeContact.uid;
                 
                 console.log("Calling peer:", targetPeerId);
 
                 try {
+                    // Получаем поток СОЗДАНИЯ вызова
                     const stream = await this.getStream();
+                    
+                    // Показываем UI
                     document.getElementById('call-overlay').classList.add('active');
                     document.getElementById('call-status-text').style.display = 'block';
                     document.getElementById('call-status-text').innerText = "Dialing...";
                     this.playRing('dialing');
 
-                    // 🔧 ИСПРАВЛЕНИЕ #8: Добавлен таймаут вызова
-                    const call = this.peer.call(targetPeerId, stream);
+                    // Создаем вызов
+                    const call = this.peer.call(targetPeerId, stream, {
+                        metadata: {
+                            callerName: State.user.nickname,
+                            timestamp: Date.now()
+                        }
+                    });
                     
-                    // Таймаут на установку соединения
-                    this.callTimeout = setTimeout(() => {
+                    // 🔧 ИСПРАВЛЕНИЕ #8: Таймаут на установку соединения
+                    State.callTimeout = setTimeout(() => {
                         if(!State.currentCall) {
                             App.ui.toast("No answer", "warning");
                             this.endCall();
                         }
                     }, 30000);
 
+                    // Настраиваем события
                     this.setupCallEvents(call);
 
                 } catch(e) {
@@ -921,26 +980,34 @@ const firebaseConfig = {
                 State.currentCall = call;
                 State.callStartTime = Date.now();
                 
+                // 🔧 ИСПРАВЛЕНИЕ #9: Добавлен таймер длительности звонка
+                State.callDurationInterval = setInterval(() => {
+                    App.ui.updateCallDuration();
+                }, 1000);
+
                 call.on('stream', (remoteStream) => {
-                    clearTimeout(this.callTimeout);
+                    clearTimeout(State.callTimeout);
                     this.stopRing();
                     document.getElementById('call-status-text').innerText = "Connected";
-                    setTimeout(() => document.getElementById('call-status-text').style.display = 'none', 2000);
+                    setTimeout(() => {
+                        document.getElementById('call-status-text').style.display = 'none';
+                    }, 2000);
                     
                     const remoteVideo = document.getElementById('remote-video');
                     remoteVideo.srcObject = remoteStream;
                     
-                    // Обработка ошибок удаленного потока
+                    // 🔧 ИСПРАВЛЕНИЕ #10: Обработка ошибок удаленного потока
                     remoteStream.getTracks().forEach(track => {
                         track.onended = () => {
                             console.log("Remote track ended");
+                            App.ui.toast("Remote user disconnected", "warning");
                             this.endCall();
                         };
                     });
                 });
 
                 call.on('close', () => {
-                    console.log("Call closed");
+                    console.log("Call closed by remote");
                     this.endCall();
                 });
 
@@ -950,28 +1017,67 @@ const firebaseConfig = {
                     this.endCall();
                 });
 
-                // ICE candidate handling
+                // 🔧 ИСПРАВЛЕНИЕ #11: Мониторинг состояния ICE соединения
                 if(call.peerConnection) {
                     call.peerConnection.oniceconnectionstatechange = () => {
                         console.log("ICE state:", call.peerConnection.iceConnectionState);
-                        if(call.peerConnection.iceConnectionState === 'failed' || 
-                           call.peerConnection.iceConnectionState === 'disconnected') {
+                        const iceState = call.peerConnection.iceConnectionState;
+                        
+                        if(iceState === 'connected') {
+                            App.ui.toast("Connected", "success");
+                        } else if(iceState === 'failed') {
+                            App.ui.toast("Connection failed", "error");
+                            this.endCall();
+                        } else if(iceState === 'disconnected') {
                             App.ui.toast("Connection unstable", "warning");
+                            // Попытка переподключения
+                            setTimeout(() => {
+                                if (call.peerConnection.iceConnectionState === 'disconnected') {
+                                    this.endCall();
+                                }
+                            }, 5000);
+                        }
+                    };
+
+                    // Мониторинг состояния подключения
+                    call.peerConnection.onconnectionstatechange = () => {
+                        console.log("Connection state:", call.peerConnection.connectionState);
+                        if(call.peerConnection.connectionState === 'failed') {
+                            App.ui.toast("Connection failed", "error");
+                            this.endCall();
                         }
                     };
                 }
             }
 
             endCall() {
-                clearTimeout(this.callTimeout);
-                clearTimeout(this.incomingTimeout);
+                // Очищаем все таймауты
+                clearTimeout(State.callTimeout);
+                clearTimeout(State.incomingTimeout);
+                clearInterval(State.callDurationInterval);
                 this.stopRing();
                 
+                // Закрываем текущий вызов
                 if (State.currentCall) {
-                    State.currentCall.close();
+                    try {
+                        State.currentCall.close();
+                    } catch(e) {
+                        console.log("Error closing call:", e);
+                    }
                     State.currentCall = null;
                 }
                 
+                // Очищаем временный вызов
+                if (State.tempCall) {
+                    try {
+                        State.tempCall.close();
+                    } catch(e) {
+                        console.log("Error closing temp call:", e);
+                    }
+                    State.tempCall = null;
+                }
+                
+                // Останавливаем все треки
                 if (State.localStream) {
                     State.localStream.getTracks().forEach(t => {
                         try {
@@ -982,19 +1088,28 @@ const firebaseConfig = {
                     });
                 }
                 
+                // Сбрасываем состояние
                 State.localStream = null;
                 State.callStartTime = null;
                 
+                // Скрываем UI
                 document.getElementById('call-overlay').classList.remove('active');
                 document.getElementById('remote-video').srcObject = null;
                 document.getElementById('local-video').srcObject = null;
                 document.getElementById('call-status-text').style.display = 'block';
+                document.getElementById('call-duration').style.display = 'none';
                 
                 // Сброс кнопок управления
-                document.getElementById('btn-mute').style.background = 'rgba(255,255,255,0.2)';
-                document.getElementById('btn-mute').innerHTML = '<i class="fas fa-microphone"></i>';
-                document.getElementById('btn-cam').style.background = 'rgba(255,255,255,0.2)';
-                document.getElementById('btn-cam').innerHTML = '<i class="fas fa-video"></i>';
+                const muteBtn = document.getElementById('btn-mute');
+                const camBtn = document.getElementById('btn-cam');
+                if(muteBtn) {
+                    muteBtn.style.background = 'rgba(255,255,255,0.2)';
+                    muteBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                }
+                if(camBtn) {
+                    camBtn.style.background = 'rgba(255,255,255,0.2)';
+                    camBtn.innerHTML = '<i class="fas fa-video"></i>';
+                }
             }
 
             toggleAudio() {
@@ -1028,12 +1143,23 @@ const firebaseConfig = {
                 const newMode = currentMode === 'user' ? 'environment' : 'user';
                 
                 try {
+                    // 🔧 ИСПРАВЛЕНИЕ #12: Более надежная смена камеры
                     const newStream = await navigator.mediaDevices.getUserMedia({
                         video: { facingMode: newMode },
-                        audio: true
+                        audio: false // Не меняем аудио
                     });
                     
                     const videoTrack = newStream.getVideoTracks()[0];
+                    
+                    // Заменяем только видеотрек в существующем потоке
+                    if(State.localStream) {
+                        const oldVideoTrack = State.localStream.getVideoTracks()[0];
+                        if(oldVideoTrack) {
+                            State.localStream.removeTrack(oldVideoTrack);
+                            oldVideoTrack.stop();
+                        }
+                        State.localStream.addTrack(videoTrack);
+                    }
                     
                     // Заменяем трек в соединении
                     if(State.currentCall && State.currentCall.peerConnection) {
@@ -1043,13 +1169,48 @@ const firebaseConfig = {
                         }
                     }
                     
-                    document.getElementById('local-video').srcObject = newStream;
-                    State.localStream.getTracks().forEach(t => t.stop());
-                    State.localStream = newStream;
+                    // Обновляем UI
+                    const localVideo = document.getElementById('local-video');
+                    localVideo.srcObject = State.localStream;
+                    
+                    App.ui.toast("Camera flipped", "success");
                     
                 } catch(e) {
                     console.error("Camera switch error:", e);
                     App.ui.toast("Cannot switch camera", "error");
+                }
+            }
+
+            async replaceVideoTrack() {
+                try {
+                    const newStream = await navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: false
+                    });
+                    
+                    const videoTrack = newStream.getVideoTracks()[0];
+                    
+                    if(State.localStream) {
+                        const oldVideoTrack = State.localStream.getVideoTracks()[0];
+                        if(oldVideoTrack) {
+                            State.localStream.removeTrack(oldVideoTrack);
+                            oldVideoTrack.stop();
+                        }
+                        State.localStream.addTrack(videoTrack);
+                    }
+                    
+                    if(State.currentCall && State.currentCall.peerConnection) {
+                        const sender = State.currentCall.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+                        if(sender) {
+                            await sender.replaceTrack(videoTrack);
+                        }
+                    }
+                    
+                    const localVideo = document.getElementById('local-video');
+                    localVideo.srcObject = State.localStream;
+                    
+                } catch(e) {
+                    console.error("Replace video track error:", e);
                 }
             }
         }
@@ -1097,10 +1258,20 @@ const firebaseConfig = {
             }
         });
 
-        // 🔧 ИСПРАВЛЕНИЕ #9: Проверка поддержки WebRTC
+        // 🔧 ИСПРАВЛЕНИЕ #13: Проверка поддержки WebRTC
         window.addEventListener('load', () => {
             if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 App.ui.toast("Your browser doesn't support video calls", "error");
+            }
+        });
+
+        // 🔧 ИСПРАВЛЕНИЕ #14: Обработка потери фокуса вкладки
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && State.currentCall) {
+                console.log("Tab hidden during call");
+            } else if (!document.hidden && State.currentCall) {
+                console.log("Tab visible during call");
+                // Можно добавить логику восстановления
             }
         });
     </script>
