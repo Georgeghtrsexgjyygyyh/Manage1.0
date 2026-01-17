@@ -2,283 +2,293 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Family Connect | Secure Messenger</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FamilyChat Pro | Secure Messenger</title>
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 
     <style>
-        /* --- CSS VARIABLES & THEME --- */
+        /* --- 1. CORE VARIABLES & RESET --- */
         :root {
-            --primary: #008069;
-            --primary-dark: #005c4b;
-            --bg-app: #dcf8c6; /* WhatsApp-like background */
+            /* Colors - Light Mode */
+            --primary: #00a884;
+            --primary-dark: #008f6f;
+            --bg-main: #d1d7db;
             --bg-panel: #ffffff;
+            --bg-chat: #efeae2;
             --text-main: #111b21;
-            --text-secondary: #667781;
-            --incoming-msg: #ffffff;
-            --outgoing-msg: #d9fdd3;
-            --border: #e9edef;
-            --error: #ea0038;
-            --shadow: 0 4px 12px rgba(0,0,0,0.15);
-            --font-size: 16px;
-            --btn-size: 48px;
+            --text-sub: #667781;
+            --incoming: #ffffff;
+            --outgoing: #d9fdd3;
+            --danger: #ef5350;
+            --success: #25d366;
+            --shadow-card: 0 4px 18px rgba(0,0,0,0.1);
+            
+            /* Dimensions */
+            --header-height: 60px;
+            --sidebar-width: 380px;
         }
 
         [data-theme="dark"] {
             --primary: #00a884;
             --primary-dark: #02906f;
-            --bg-app: #0b141a;
+            --bg-main: #0b141a;
             --bg-panel: #202c33;
+            --bg-chat: #0b141a; /* Dark chat background */
             --text-main: #e9edef;
-            --text-secondary: #8696a0;
-            --incoming-msg: #202c33;
-            --outgoing-msg: #005c4b;
-            --border: #222e35;
+            --text-sub: #8696a0;
+            --incoming: #202c33;
+            --outgoing: #005c4b;
+            --shadow-card: 0 4px 18px rgba(0,0,0,0.3);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; height: 100dvh; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; }
         
-        body { background: var(--bg-app); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-
-        /* --- UTILITIES --- */
-        .hidden { display: none !important; }
+        button { border: none; outline: none; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+        input { font-family: inherit; outline: none; }
+        
+        /* --- 2. LAYOUT UTILITIES --- */
+        .app-wrapper { display: flex; width: 100%; height: 100%; max-width: 1600px; margin: 0 auto; position: relative; background: var(--bg-panel); overflow: hidden; }
         .flex { display: flex; }
         .flex-col { flex-direction: column; }
         .center { align-items: center; justify-content: center; }
+        .hidden { display: none !important; }
         .scroll-y { overflow-y: auto; scrollbar-width: thin; }
 
-        /* --- AUTH SCREEN --- */
-        #auth-container {
-            width: 100%; max-width: 400px; background: var(--bg-panel); 
-            padding: 2rem; border-radius: 12px; box-shadow: var(--shadow);
-            text-align: center; margin: 1rem;
-        }
-        input {
-            width: 100%; padding: 14px; margin: 8px 0; border: 1px solid var(--border);
-            border-radius: 8px; font-size: 1.1rem; background: var(--bg-panel); color: var(--text-main);
-        }
-        button {
-            width: 100%; padding: 14px; background: var(--primary); color: white; border: none;
-            border-radius: 8px; font-size: 1.1rem; cursor: pointer; font-weight: bold; margin-top: 10px;
-            min-height: var(--btn-size); transition: opacity 0.2s;
-        }
-        button:active { opacity: 0.8; }
-        .link-btn { background: none; color: var(--primary); margin-top: 15px; font-size: 0.9rem; }
+        /* --- 3. AUTH SCREEN --- */
+        #auth-view { position: absolute; inset: 0; z-index: 2000; background: var(--bg-main); display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-card { background: var(--bg-panel); width: 100%; max-width: 450px; padding: 40px; border-radius: 12px; box-shadow: var(--shadow-card); text-align: center; }
+        .auth-logo { width: 80px; height: 80px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px; }
+        .auth-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid var(--text-sub); border-radius: 8px; font-size: 16px; background: var(--bg-panel); color: var(--text-main); }
+        .btn-primary { width: 100%; padding: 15px; background: var(--primary); color: white; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 10px; }
+        .btn-primary:active { transform: scale(0.98); }
+        .auth-switch { margin-top: 20px; color: var(--primary); cursor: pointer; font-size: 14px; }
 
-        /* --- MAIN APP LAYOUT --- */
-        #app-container {
-            display: flex; width: 100%; height: 100%; max-width: 1600px;
-            background: var(--bg-panel); box-shadow: var(--shadow); position: relative;
-        }
-
-        /* SIDEBAR (Contacts) */
-        aside {
-            width: 350px; border-right: 1px solid var(--border); display: flex; flex-direction: column;
-            background: var(--bg-panel); transition: transform 0.3s ease; z-index: 10;
-        }
-        .header {
-            padding: 16px; background: var(--bg-panel); border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .user-avatar {
-            width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white;
-            display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;
-        }
-        .search-bar { padding: 10px; border-bottom: 1px solid var(--border); }
+        /* --- 4. SIDEBAR (CONTACTS) --- */
+        aside { width: var(--sidebar-width); border-right: 1px solid rgba(0,0,0,0.1); display: flex; flex-direction: column; background: var(--bg-panel); z-index: 10; height: 100%; }
+        .header { height: var(--header-height); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-panel); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--text-sub); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; object-fit: cover; }
+        
+        .search-container { padding: 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .search-box { background: rgba(0,0,0,0.05); border-radius: 8px; display: flex; align-items: center; padding: 0 10px; }
+        .search-box input { border: none; background: transparent; padding: 10px; flex: 1; color: var(--text-main); }
+        
         .contact-list { flex: 1; overflow-y: auto; }
-        .contact-item {
-            display: flex; align-items: center; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border);
-        }
+        .contact-item { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; transition: background 0.2s; position: relative; }
         .contact-item:hover { background: rgba(0,0,0,0.03); }
-        .contact-info { margin-left: 12px; }
-        .contact-name { font-weight: 600; font-size: 1.1rem; }
-        .last-msg { font-size: 0.9rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+        .contact-item.active { background: rgba(0,0,0,0.06); }
+        .contact-info { margin-left: 15px; flex: 1; overflow: hidden; }
+        .contact-name { font-weight: 500; font-size: 17px; margin-bottom: 2px; }
+        .contact-status { font-size: 13px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .unread-badge { background: var(--success); color: white; font-size: 12px; padding: 2px 6px; border-radius: 10px; margin-left: auto; }
 
-        /* CHAT AREA */
-        main { flex: 1; display: flex; flex-direction: column; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); position: relative; }
-        [data-theme="dark"] main { opacity: 0.9; }
+        /* --- 5. CHAT AREA --- */
+        main { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); position: relative; height: 100%; }
+        /* Background Pattern */
+        main::before { content: ""; position: absolute; inset: 0; opacity: 0.4; background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239ca3af' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E"); pointer-events: none; }
+
+        .chat-header { background: var(--bg-panel); height: var(--header-height); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 5; }
+        .chat-back-btn { display: none; margin-right: 15px; font-size: 20px; color: var(--text-main); }
+        .chat-user-meta { display: flex; align-items: center; cursor: pointer; }
+        .chat-actions i { font-size: 20px; color: var(--primary); margin-left: 25px; cursor: pointer; padding: 8px; border-radius: 50%; }
+        .chat-actions i:hover { background: rgba(0,0,0,0.05); }
+
+        .messages-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; z-index: 2; }
         
-        .chat-header {
-            padding: 10px 16px; background: var(--bg-panel); border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; justify-content: space-between;
-        }
-        .chat-messages { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+        .msg { max-width: 65%; padding: 8px 12px; border-radius: 8px; font-size: 15px; line-height: 1.4; position: relative; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .msg-in { align-self: flex-start; background: var(--incoming); border-top-left-radius: 0; }
+        .msg-out { align-self: flex-end; background: var(--outgoing); border-top-right-radius: 0; }
+        .msg-time { font-size: 10px; color: var(--text-sub); text-align: right; margin-top: 4px; display: block; float: right; margin-left: 10px; }
+        .msg-img { max-width: 100%; border-radius: 6px; margin-bottom: 4px; display: block; cursor: pointer; }
+
+        .input-area { background: var(--bg-panel); padding: 10px 16px; display: flex; align-items: center; gap: 10px; z-index: 5; }
+        .input-field { flex: 1; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 12px; max-height: 100px; overflow-y: auto; color: var(--text-main); }
+        .btn-icon { color: var(--text-sub); font-size: 22px; padding: 8px; display: flex; align-items: center; justify-content: center; }
+        .btn-send { color: var(--primary); }
+
+        /* --- 6. VIDEO CALL OVERLAY --- */
+        #call-overlay { position: fixed; inset: 0; background: #000; z-index: 3000; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #call-overlay.active { opacity: 1; pointer-events: auto; }
         
-        .message {
-            max-width: 65%; padding: 8px 12px; border-radius: 8px; position: relative; font-size: 1rem; line-height: 1.4; word-wrap: break-word;
-        }
-        .msg-in { align-self: flex-start; background: var(--incoming-msg); border-top-left-radius: 0; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
-        .msg-out { align-self: flex-end; background: var(--outgoing-msg); border-top-right-radius: 0; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
-        .msg-meta { font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: 4px; display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
-        .msg-img { max-width: 100%; border-radius: 6px; margin-bottom: 4px; cursor: pointer; }
+        .video-grid { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        video { background: #000; }
+        #remote-video { width: 100%; height: 100%; object-fit: contain; }
+        #local-video { position: absolute; bottom: 100px; right: 20px; width: 120px; height: 160px; border-radius: 12px; border: 2px solid white; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 3002; transition: all 0.3s; }
+        
+        /* Dragging local video on desktop */
+        #local-video.dragging { opacity: 0.8; }
 
-        .chat-input {
-            padding: 10px 16px; background: var(--bg-panel); display: flex; align-items: center; gap: 10px; min-height: 60px;
-        }
-        .icon-btn { 
-            background: none; border: none; font-size: 1.4rem; color: var(--text-secondary); 
-            cursor: pointer; padding: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
-        }
-        .icon-btn:hover { color: var(--primary); }
+        .call-controls { position: absolute; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; gap: 20px; z-index: 3003; padding-bottom: env(safe-area-inset-bottom); }
+        .ctrl-btn { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.2s; }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+        .ctrl-btn.bg-red { background: var(--danger); }
+        .ctrl-btn.active { background: white; color: #333; }
 
-        /* --- VIDEO CALL OVERLAY --- */
-        #video-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #000; z-index: 1000; display: flex; flex-direction: column;
-        }
-        #remote-video { width: 100%; height: 100%; object-fit: cover; }
-        #local-video {
-            position: absolute; bottom: 20px; right: 20px; width: 120px; height: 160px;
-            background: #333; border: 2px solid white; border-radius: 8px; object-fit: cover; z-index: 1001;
-            transition: all 0.3s;
-        }
-        .call-controls {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 20px; z-index: 1002;
-        }
-        .call-btn {
-            width: 60px; height: 60px; border-radius: 50%; border: none; color: white; font-size: 1.5rem;
-            display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer;
-        }
-        .btn-hangup { background: #ea0038; }
-        .btn-mute { background: #333; }
-        .device-settings {
-            position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 8px; color: white; z-index: 1002;
-        }
-        select { background: #333; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px; margin-bottom: 5px; width: 100%; }
+        .call-status-pill { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 30px; color: white; font-size: 14px; z-index: 3003; backdrop-filter: blur(5px); }
 
-        /* --- RESPONSIVE DESIGN --- */
+        /* --- 7. INCOMING CALL MODAL --- */
+        #incoming-modal { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-150%); background: rgba(32, 44, 51, 0.95); width: 90%; max-width: 400px; padding: 20px; border-radius: 16px; z-index: 4000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between; color: white; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(10px); }
+        #incoming-modal.show { transform: translateX(-50%) translateY(0); }
+        .incoming-info { display: flex; align-items: center; gap: 15px; }
+        .incoming-actions { display: flex; gap: 15px; }
+        .btn-accept { background: var(--success); width: 45px; height: 45px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; animation: pulse 1.5s infinite; }
+        .btn-decline { background: var(--danger); width: 45px; height: 45px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
+
+        /* --- 8. MOBILE RESPONSIVE --- */
         @media (max-width: 768px) {
-            aside { width: 100%; height: 100%; position: absolute; }
-            main { width: 100%; height: 100%; position: absolute; transform: translateX(100%); transition: transform 0.3s ease; }
+            .app-wrapper { border-radius: 0; box-shadow: none; }
+            aside { width: 100%; position: absolute; }
+            main { width: 100%; position: absolute; transform: translateX(100%); transition: transform 0.3s ease-in-out; z-index: 20; }
             
-            body.chat-active aside { transform: translateX(-20%); }
-            body.chat-active main { transform: translateX(0); }
+            body.chat-open aside { transform: translateX(-20%); opacity: 0; }
+            body.chat-open main { transform: translateX(0); }
             
-            #local-video { width: 90px; height: 120px; bottom: 100px; right: 10px; }
-            .back-btn { display: block !important; }
+            .chat-back-btn { display: block; }
+            
+            #local-video { width: 90px; height: 130px; bottom: 120px; right: 15px; }
+            .msg { font-size: 16px; } /* Larger text for reading */
+            
+            /* Hide device selection on mobile to simplify */
+            #device-selector { display: none !important; }
         }
-        .back-btn { display: none; margin-right: 10px; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary); }
 
-        /* Toast Notification */
-        #toast {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: #333; color: #fff; padding: 10px 20px; border-radius: 20px;
-            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 2000;
-        }
+        /* --- 9. TOAST --- */
+        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 5000; text-align: center; width: 100%; pointer-events: none; }
+        .toast { display: inline-block; background: #333; color: white; padding: 12px 24px; border-radius: 30px; margin-top: 10px; opacity: 0; transition: 0.3s; transform: translateY(20px); font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .toast.visible { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body>
 
-    <div id="toast"></div>
-
-    <div id="auth-container">
-        <h2 style="color: var(--primary); margin-bottom: 10px;">Family Connect</h2>
-        <p id="auth-subtitle">Enter your nickname to start</p>
-        <div id="auth-error" style="color: var(--error); margin: 10px 0; font-size: 0.9rem;"></div>
-        
-        <input type="text" id="auth-nick" placeholder="Nickname (e.g., Grandma, Tom)" autocomplete="off">
-        <input type="password" id="auth-pass" placeholder="Password">
-        
-        <button id="btn-login" onclick="auth.login()">Login</button>
-        <button id="btn-register" class="hidden" onclick="auth.register()">Create Account</button>
-        
-        <div class="link-btn" id="toggle-auth" onclick="auth.toggleMode()">New here? Create Account</div>
+    <div id="auth-view">
+        <div class="auth-card">
+            <div class="auth-logo"><i class="fas fa-users"></i></div>
+            <h2 style="margin-bottom: 10px;">FamilyChat</h2>
+            <p style="color: var(--text-sub); margin-bottom: 25px;">Connect with your loved ones</p>
+            
+            <div id="auth-error" style="color: var(--danger); font-size: 14px; margin-bottom: 15px; display: none;"></div>
+            
+            <input type="text" id="auth-nick" class="auth-input" placeholder="Your Nickname (e.g. Mom)" autocomplete="off">
+            <input type="password" id="auth-pass" class="auth-input" placeholder="Password (simple)" autocomplete="new-password">
+            
+            <button id="btn-auth-action" class="btn-primary" onclick="App.auth.login()">Login</button>
+            
+            <div class="auth-switch" onclick="App.auth.toggleMode()">
+                <span id="auth-switch-text">New here? Create Account</span>
+            </div>
+        </div>
     </div>
 
-    <div id="app-container" class="hidden">
+    <div id="app-view" class="app-wrapper hidden">
         
-        <aside id="sidebar">
+        <aside>
             <div class="header">
-                <div class="flex center" style="gap: 10px;">
-                    <div id="my-avatar" class="user-avatar">?</div>
-                    <span id="my-nick" style="font-weight: bold;"></span>
+                <div class="flex center" style="gap: 12px; cursor: pointer;" onclick="App.ui.showProfileSettings()">
+                    <div id="my-avatar" class="avatar"></div>
+                    <div style="font-weight: 600;" id="my-nick"></div>
                 </div>
-                <div class="flex" style="gap: 10px;">
-                    <button class="icon-btn" onclick="ui.toggleTheme()"><i class="fas fa-moon"></i></button>
-                    <button class="icon-btn" onclick="auth.logout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+                <div class="flex" style="gap: 15px;">
+                    <button class="btn-icon" onclick="App.ui.toggleTheme()"><i class="fas fa-adjust"></i></button>
+                    <button class="btn-icon" onclick="App.auth.logout()"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             </div>
             
-            <div class="search-bar">
-                <div class="flex">
-                    <input type="text" id="search-input" placeholder="Find family by nickname..." style="margin: 0; border-radius: 8px 0 0 8px;">
-                    <button onclick="chat.searchUser()" style="width: auto; margin: 0; border-radius: 0 8px 8px 0; padding: 0 15px;">
-                        <i class="fas fa-search"></i>
-                    </button>
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search" style="color: var(--text-sub);"></i>
+                    <input type="text" id="contact-search" placeholder="Search or add by nickname..." onkeyup="if(event.key === 'Enter') App.contacts.searchUser()">
+                    <button onclick="App.contacts.searchUser()" style="padding: 8px; color: var(--primary); font-weight: bold;">ADD</button>
                 </div>
             </div>
 
-            <div id="contact-list" class="contact-list">
+            <div id="contacts-list" class="contact-list">
                 </div>
         </aside>
 
-        <main id="chat-area">
+        <main>
             <div class="chat-header">
                 <div class="flex center">
-                    <div class="back-btn" onclick="ui.closeChat()"><i class="fas fa-arrow-left"></i></div>
-                    <div id="chat-avatar" class="user-avatar" style="margin-right: 10px;"></div>
-                    <div>
-                        <div id="chat-name" style="font-weight: bold;">Select a contact</div>
-                        <div id="chat-status" style="font-size: 0.8rem; color: var(--text-secondary);"></div>
+                    <button class="chat-back-btn" onclick="App.ui.closeChat()"><i class="fas fa-arrow-left"></i></button>
+                    <div class="chat-user-meta">
+                        <div id="chat-avatar" class="avatar" style="width: 36px; height: 36px; margin-right: 10px; font-size: 14px;"></div>
+                        <div>
+                            <div id="chat-name" style="font-weight: 600; font-size: 16px;"></div>
+                            <div id="chat-status" style="font-size: 12px; color: var(--text-sub);">Offline</div>
+                        </div>
                     </div>
                 </div>
-                <div class="flex" id="chat-actions" style="opacity: 0; pointer-events: none;">
-                    <button class="icon-btn" onclick="videoCall.start()"><i class="fas fa-video"></i></button>
+                <div class="chat-actions flex">
+                    <i class="fas fa-video" onclick="App.call.startCall()"></i>
                 </div>
             </div>
 
-            <div id="messages" class="chat-messages scroll-y">
-                <div class="center flex" style="height: 100%; opacity: 0.5; flex-direction: column;">
-                    <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 10px;"></i>
-                    <p>Select a family member to start chatting</p>
+            <div id="messages-area" class="messages-container">
+                <div class="center flex flex-col" style="height: 100%; color: var(--text-sub); opacity: 0.6;">
+                    <i class="fas fa-comments" style="font-size: 48px; margin-bottom: 20px;"></i>
+                    <p>Select a contact to start chatting</p>
                 </div>
             </div>
 
-            <div class="chat-input" id="input-area" style="display: none;">
-                <button class="icon-btn" onclick="document.getElementById('file-input').click()">
-                    <i class="fas fa-paperclip"></i>
-                </button>
-                <input type="file" id="file-input" hidden onchange="chat.uploadFile(this)">
+            <div id="input-area" class="input-area hidden">
+                <button class="btn-icon" onclick="document.getElementById('file-upload').click()"><i class="fas fa-paperclip"></i></button>
+                <input type="file" id="file-upload" hidden onchange="App.chat.handleFileUpload(this)">
                 
-                <input type="text" id="msg-input" placeholder="Type a message..." style="margin: 0;" onkeydown="if(event.key === 'Enter') chat.send()">
+                <input type="text" id="msg-input" class="input-field" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') App.chat.sendMessage()">
                 
-                <button class="icon-btn" style="color: var(--primary);" onclick="chat.send()">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                <button class="btn-icon btn-send" onclick="App.chat.sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </main>
     </div>
 
-    <div id="video-modal" class="hidden">
-        <div class="device-settings" id="device-settings">
-            <small>Camera</small>
-            <select id="video-source" onchange="videoCall.updateStream()"></select>
-            <small>Microphone</small>
-            <select id="audio-source" onchange="videoCall.updateStream()"></select>
-            <button onclick="videoCall.flipCamera()" class="hidden" id="flip-btn" style="margin-top:5px; padding: 5px; font-size: 0.9rem;">Flip Camera</button>
+    <div id="incoming-modal">
+        <div class="incoming-info">
+            <div id="caller-avatar" class="avatar" style="background: white; color: #333;">?</div>
+            <div>
+                <div style="font-size: 12px; opacity: 0.8;">Incoming Video Call</div>
+                <div id="caller-name" style="font-weight: bold; font-size: 18px;">Grandma</div>
+            </div>
         </div>
-
-        <video id="remote-video" autoplay playsinline></video>
-        <video id="local-video" autoplay playsinline muted></video>
-
-        <div class="call-controls">
-            <button class="call-btn btn-mute" onclick="videoCall.toggleMute()" id="mute-btn"><i class="fas fa-microphone"></i></button>
-            <button class="call-btn btn-hangup" onclick="videoCall.end()"><i class="fas fa-phone-slash"></i></button>
+        <div class="incoming-actions">
+            <button class="btn-decline" onclick="App.call.rejectCall()"><i class="fas fa-times"></i></button>
+            <button class="btn-accept" onclick="App.call.acceptCall()"><i class="fas fa-video"></i></button>
         </div>
     </div>
+
+    <div id="call-overlay">
+        <div class="call-status-pill" id="call-status-text">Connecting...</div>
+        
+        <div class="video-grid">
+            <video id="remote-video" autoplay playsinline></video>
+            <video id="local-video" autoplay playsinline muted></video>
+        </div>
+
+        <div class="call-controls">
+            <button class="ctrl-btn" onclick="App.call.toggleAudio()" id="btn-mute"><i class="fas fa-microphone"></i></button>
+            <button class="ctrl-btn bg-red" onclick="App.call.endCall()"><i class="fas fa-phone-slash"></i></button>
+            <button class="ctrl-btn" onclick="App.call.toggleVideo()" id="btn-cam"><i class="fas fa-video"></i></button>
+            <button class="ctrl-btn" onclick="App.call.flipCamera()" id="btn-flip"><i class="fas fa-camera-rotate"></i></button>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-        // --- 1. CONFIGURATION ---
-        // TODO: Replace with your Firebase Project Config
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        /**
+         * ------------------------------------------------------------------
+         * CONFIGURATION
+         * Replace this object with your Firebase Console credentials
+         * ------------------------------------------------------------------
+         */
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDXsvsaG8IdcjZv4iG4WHjPneGvcxywuTk",
   authDomain: "bobba-591c5.firebaseapp.com",
@@ -291,439 +301,591 @@ const firebaseConfig = {
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const authService = getAuth(app);
+        const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        // Global State
-        const state = {
-            currentUser: null,
-            activeChatUser: null, // { uid, nickname, avatar }
-            peer: null,
-            currentCall: null,
-            localStream: null,
-            unsubscribeChat: null
+        /**
+         * ------------------------------------------------------------------
+         * CORE APPLICATION STATE & SERVICES
+         * Professional MVC Structure
+         * ------------------------------------------------------------------
+         */
+
+        const State = {
+            user: null, // Current logged in user object
+            activeContact: null, // User currently being chatted with
+            contactsMap: {}, // Cache of contact data
+            peer: null, // PeerJS instance
+            currentCall: null, // Active media connection
+            localStream: null, // My camera stream
+            unsubscribeChat: null, // Listener for messages
+            isCalling: false
         };
 
-        // --- 2. AUTHENTICATION LOGIC ---
-        window.auth = {
-            isRegistering: false,
-            
-            toggleMode: () => {
-                auth.isRegistering = !auth.isRegistering;
-                document.getElementById('btn-login').classList.toggle('hidden');
-                document.getElementById('btn-register').classList.toggle('hidden');
-                document.getElementById('toggle-auth').innerText = auth.isRegistering ? "Have an account? Login" : "New here? Create Account";
-                document.getElementById('auth-subtitle').innerText = auth.isRegistering ? "Create your family ID" : "Enter your nickname to start";
-                document.getElementById('auth-error').innerText = "";
-            },
+        // --- UI MANAGER: Handles DOM manipulation, Themes, Toasts ---
+        class UIManager {
+            constructor() {
+                this.dom = {
+                    auth: document.getElementById('auth-view'),
+                    app: document.getElementById('app-view'),
+                    msgArea: document.getElementById('messages-area'),
+                    inputArea: document.getElementById('input-area'),
+                    contactList: document.getElementById('contacts-list')
+                };
+            }
 
-            // We use nickname@family.app as a fake email to satisfy Firebase Auth
-            getFakeEmail: (nick) => `${nick.toLowerCase().replace(/\s/g, '')}@family.app`,
+            toast(msg, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const el = document.createElement('div');
+                el.className = 'toast';
+                el.textContent = msg;
+                if(type === 'error') el.style.borderLeft = '4px solid var(--danger)';
+                container.appendChild(el);
+                
+                // Animation frame trick for transition
+                requestAnimationFrame(() => {
+                    el.classList.add('visible');
+                    setTimeout(() => {
+                        el.classList.remove('visible');
+                        setTimeout(() => el.remove(), 300);
+                    }, 3000);
+                });
+            }
 
-            register: async () => {
+            setLoading(isLoading) {
+                // Implementation for spinners if needed
+                document.body.style.cursor = isLoading ? 'wait' : 'default';
+            }
+
+            toggleTheme() {
+                const body = document.body;
+                const current = body.getAttribute('data-theme');
+                const next = current === 'dark' ? 'light' : 'dark';
+                body.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+            }
+
+            initTheme() {
+                const saved = localStorage.getItem('theme') || 'light';
+                document.body.setAttribute('data-theme', saved);
+            }
+
+            showApp() {
+                this.dom.auth.classList.add('hidden');
+                this.dom.app.classList.remove('hidden');
+                document.getElementById('my-nick').textContent = State.user.nickname;
+                document.getElementById('my-avatar').textContent = State.user.nickname[0].toUpperCase();
+            }
+
+            showAuth() {
+                this.dom.app.classList.add('hidden');
+                this.dom.auth.classList.remove('hidden');
+            }
+
+            openChatUI(contact) {
+                document.body.classList.add('chat-open');
+                document.getElementById('chat-name').textContent = contact.nickname;
+                document.getElementById('chat-avatar').textContent = contact.nickname[0].toUpperCase();
+                this.dom.inputArea.classList.remove('hidden');
+                this.dom.msgArea.innerHTML = ''; // Clear previous messages
+            }
+
+            closeChat() {
+                document.body.classList.remove('chat-open');
+                State.activeContact = null;
+                if(State.unsubscribeChat) State.unsubscribeChat();
+            }
+        }
+
+        // --- AUTH SERVICE: Login, Register, Logout ---
+        class AuthService {
+            constructor() {
+                this.isRegistering = false;
+            }
+
+            toggleMode() {
+                this.isRegistering = !this.isRegistering;
+                document.getElementById('btn-auth-action').textContent = this.isRegistering ? 'Create Account' : 'Login';
+                document.getElementById('auth-switch-text').textContent = this.isRegistering ? 'Have an account? Login' : 'New here? Create Account';
+                document.getElementById('auth-error').style.display = 'none';
+            }
+
+            async login() {
                 const nick = document.getElementById('auth-nick').value.trim();
                 const pass = document.getElementById('auth-pass').value;
-                if (!nick || !pass) return ui.showError('Please fill all fields');
+                if(!nick || !pass) return App.ui.toast("Please fill all fields", 'error');
+
+                const email = `${nick.toLowerCase().replace(/[^a-z0-9]/g, '')}@familyconnect.app`;
 
                 try {
-                    // 1. Check if nickname exists in Firestore
-                    const q = query(collection(db, "users"), where("nickname", "==", nick));
-                    const querySnapshot = await getDocs(q);
-                    if (!querySnapshot.empty) throw new Error("Nickname already taken");
+                    App.ui.setLoading(true);
+                    if (this.isRegistering) {
+                        // 1. Check uniqueness
+                        const q = query(collection(db, "users"), where("nickname", "==", nick));
+                        const check = await getDocs(q); // Using imported getDocs below
+                        if (!check.empty) throw new Error("Nickname taken");
 
-                    // 2. Create Auth User
-                    const userCredential = await createUserWithEmailAndPassword(authService, auth.getFakeEmail(nick), pass);
-                    
-                    // 3. Save User Profile to Firestore
-                    await setDoc(doc(db, "users", userCredential.user.uid), {
-                        nickname: nick,
-                        uid: userCredential.user.uid,
-                        contacts: []
-                    });
-                    
-                    // 4. Update Auth Profile
-                    await updateProfile(userCredential.user, { displayName: nick });
-                    
-                } catch (error) {
-                    ui.showError(error.message);
+                        // 2. Create Auth
+                        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                        
+                        // 3. Create Firestore Doc
+                        await setDoc(doc(db, "users", cred.user.uid), {
+                            uid: cred.user.uid,
+                            nickname: nick,
+                            contacts: [],
+                            createdAt: serverTimestamp()
+                        });
+                        await updateProfile(cred.user, { displayName: nick });
+                    } else {
+                        await signInWithEmailAndPassword(auth, email, pass);
+                    }
+                } catch (e) {
+                    const errDiv = document.getElementById('auth-error');
+                    errDiv.style.display = 'block';
+                    errDiv.textContent = e.message.replace("Firebase: ", "");
+                } finally {
+                    App.ui.setLoading(false);
                 }
-            },
+            }
 
-            login: async () => {
-                const nick = document.getElementById('auth-nick').value.trim();
-                const pass = document.getElementById('auth-pass').value;
-                try {
-                    await signInWithEmailAndPassword(authService, auth.getFakeEmail(nick), pass);
-                } catch (error) {
-                    ui.showError("Login failed. Check nickname/password.");
-                }
-            },
-
-            logout: () => {
-                if(state.peer) state.peer.destroy();
-                signOut(authService);
+            logout() {
+                if(App.call.peer) App.call.peer.destroy();
+                signOut(auth);
                 window.location.reload();
             }
-        };
+        }
 
-        // Auth Listener
-        onAuthStateChanged(authService, async (user) => {
-            if (user) {
-                // Fetch full profile from Firestore to ensure we get custom data
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                state.currentUser = userDoc.data();
-                
-                document.getElementById('auth-container').classList.add('hidden');
-                document.getElementById('app-container').classList.remove('hidden');
-                
-                ui.initProfile();
-                chat.loadContacts();
-                videoCall.initPeer();
-            } else {
-                state.currentUser = null;
-                document.getElementById('auth-container').classList.remove('hidden');
-                document.getElementById('app-container').classList.add('hidden');
-            }
-        });
-
-        // --- 3. CHAT LOGIC ---
-        window.chat = {
-            searchUser: async () => {
-                const nick = document.getElementById('search-input').value.trim();
-                if (nick === state.currentUser.nickname) return ui.toast("That's you!");
-                
-                const q = query(collection(db, "users"), where("nickname", "==", nick));
-                const snapshot = await getDocs(q);
-                
-                if (snapshot.empty) {
-                    ui.toast("User not found");
-                } else {
-                    const newUser = snapshot.docs[0].data();
-                    // Add to contacts if not exists
-                    const myRef = doc(db, "users", state.currentUser.uid);
-                    const currentContacts = state.currentUser.contacts || [];
-                    
-                    if (!currentContacts.includes(newUser.uid)) {
-                        currentContacts.push(newUser.uid);
-                        await setDoc(myRef, { contacts: currentContacts }, { merge: true });
-                        // Also add me to their contacts (mutual by default for family)
-                        /* In a stricter app, you'd send a request. Here we assume family trust. */
-                        const theirRef = doc(db, "users", newUser.uid);
-                        // We can't write to their doc easily without complex rules, so for now, 
-                        // let's just update local view. Proper way: Cloud Function or relaxed rules.
-                        // For this demo: We only update our own contact list.
-                        state.currentUser.contacts = currentContacts;
-                        chat.loadContacts(); 
-                        ui.toast(`Added ${nick}!`);
-                    } else {
-                        ui.toast("Already in contacts");
-                    }
-                }
-            },
-
-            loadContacts: async () => {
-                const list = document.getElementById('contact-list');
+        // --- CHAT & CONTACTS SERVICE ---
+        class ChatService {
+            async loadContacts() {
+                if(!State.user || !State.user.contacts) return;
+                const list = document.getElementById('contacts-list');
                 list.innerHTML = '';
-                
-                if(!state.currentUser.contacts || state.currentUser.contacts.length === 0) {
-                    list.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">No contacts yet. Search for family members!</div>';
+
+                // Firestore 'in' query supports max 10. For production, execute in batches.
+                if(State.user.contacts.length === 0) {
+                    list.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.6;">Search for family members to add them!</div>';
                     return;
                 }
 
-                // Fetch all contact details
-                // Firestore 'in' query supports max 10. For prod, loop batches.
-                const q = query(collection(db, "users"), where("uid", "in", state.currentUser.contacts));
-                const snapshot = await getDocs(q);
-                
-                snapshot.forEach(doc => {
-                    const user = doc.data();
-                    const el = document.createElement('div');
-                    el.className = 'contact-item';
-                    el.onclick = () => chat.openChat(user);
-                    el.innerHTML = `
-                        <div class="user-avatar">${user.nickname[0].toUpperCase()}</div>
-                        <div class="contact-info">
-                            <div class="contact-name">${user.nickname}</div>
-                            <div class="last-msg">Click to chat</div>
-                        </div>
-                    `;
-                    list.appendChild(el);
-                });
-            },
+                // Batching logic for scalability (blocks of 10)
+                const chunks = [];
+                for (let i = 0; i < State.user.contacts.length; i += 10) {
+                    chunks.push(State.user.contacts.slice(i, i + 10));
+                }
 
-            openChat: (user) => {
-                state.activeChatUser = user;
-                
-                // UI Updates
-                document.body.classList.add('chat-active');
-                document.getElementById('chat-name').innerText = user.nickname;
-                document.getElementById('chat-avatar').innerText = user.nickname[0].toUpperCase();
-                document.getElementById('chat-actions').style.opacity = '1';
-                document.getElementById('chat-actions').style.pointerEvents = 'auto';
-                document.getElementById('input-area').style.display = 'flex';
-                
-                // Chat ID is lexical comparison of UIDs (always same string for pair)
-                const chatId = [state.currentUser.uid, user.uid].sort().join("_");
-                
-                // Unsubscribe previous listener
-                if (state.unsubscribeChat) state.unsubscribeChat();
+                for (const chunk of chunks) {
+                    const q = query(collection(db, "users"), where("uid", "in", chunk));
+                    const snap = await getDocs(q); // Need to import getDocs inside module scope or pass it
+                    snap.forEach(d => {
+                        const contact = d.data();
+                        State.contactsMap[contact.uid] = contact;
+                        this.renderContactItem(contact);
+                    });
+                }
+            }
 
-                // Listen for messages
+            renderContactItem(contact) {
+                const list = document.getElementById('contacts-list');
+                const div = document.createElement('div');
+                div.className = 'contact-item';
+                div.innerHTML = `
+                    <div class="avatar">${contact.nickname[0].toUpperCase()}</div>
+                    <div class="contact-info">
+                        <div class="contact-name">${contact.nickname}</div>
+                        <div class="contact-status">Tap to chat</div>
+                    </div>
+                `;
+                div.onclick = () => this.startChat(contact);
+                list.appendChild(div);
+            }
+
+            async searchUser() {
+                const input = document.getElementById('contact-search');
+                const val = input.value.trim();
+                if(!val) return;
+                if(val === State.user.nickname) return App.ui.toast("That's you!", 'error');
+
+                App.ui.toast("Searching...");
+                const q = query(collection(db, "users"), where("nickname", "==", val));
+                const snap = await getDocs(q); // Will define getDocs at bottom for scope
+                
+                if(snap.empty) {
+                    App.ui.toast("User not found", 'error');
+                } else {
+                    const newUser = snap.docs[0].data();
+                    const myRef = doc(db, "users", State.user.uid);
+                    
+                    // Optimistic update
+                    let current = State.user.contacts || [];
+                    if(!current.includes(newUser.uid)) {
+                        current.push(newUser.uid);
+                        await updateDoc(myRef, { contacts: current });
+                        State.user.contacts = current;
+                        this.renderContactItem(newUser);
+                        State.contactsMap[newUser.uid] = newUser;
+                        App.ui.toast("Added to contacts!", 'success');
+                        input.value = '';
+                    } else {
+                        App.ui.toast("Already in contacts");
+                    }
+                }
+            }
+
+            startChat(contact) {
+                State.activeContact = contact;
+                App.ui.openChatUI(contact);
+
+                const chatId = [State.user.uid, contact.uid].sort().join("_");
                 const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt", "asc"));
-                
-                const msgsDiv = document.getElementById('messages');
-                msgsDiv.innerHTML = ''; // clear
 
-                state.unsubscribeChat = onSnapshot(q, (snapshot) => {
+                State.unsubscribeChat = onSnapshot(q, (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === "added") {
-                            ui.renderMessage(change.doc.data());
+                            this.renderMessage(change.doc.data());
                         }
                     });
-                    ui.scrollToBottom();
                 });
-            },
+            }
 
-            send: async (fileUrl = null, fileType = null) => {
+            renderMessage(msg) {
+                const isMe = msg.senderId === State.user.uid;
+                const div = document.createElement('div');
+                div.className = `msg ${isMe ? 'msg-out' : 'msg-in'}`;
+                
+                let content = `<span>${msg.text}</span>`;
+                if(msg.type === 'image') {
+                    content = `<img src="${msg.fileUrl}" class="msg-img" onclick="window.open('${msg.fileUrl}')">` + content;
+                } else if (msg.type === 'file') {
+                    content = `<a href="${msg.fileUrl}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fas fa-file"></i> File</a><br>` + content;
+                }
+
+                const date = msg.createdAt ? msg.createdAt.toDate() : new Date();
+                const time = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                div.innerHTML = `${content} <span class="msg-time">${time}</span>`;
+                
+                const area = document.getElementById('messages-area');
+                area.appendChild(div);
+                area.scrollTop = area.scrollHeight; // Auto scroll
+            }
+
+            async sendMessage(fileData = null) {
+                if(!State.activeContact) return;
                 const input = document.getElementById('msg-input');
                 const text = input.value.trim();
                 
-                if ((!text && !fileUrl) || !state.activeChatUser) return;
+                if(!text && !fileData) return;
 
-                const chatId = [state.currentUser.uid, state.activeChatUser.uid].sort().join("_");
+                const chatId = [State.user.uid, State.activeContact.uid].sort().join("_");
                 
-                await addDoc(collection(db, "chats", chatId, "messages"), {
+                const payload = {
                     text: text,
-                    senderId: state.currentUser.uid,
+                    senderId: State.user.uid,
                     createdAt: serverTimestamp(),
-                    fileUrl: fileUrl,
-                    fileType: fileType
-                });
-
-                input.value = '';
-            },
-
-            uploadFile: async (input) => {
-                const file = input.files[0];
-                if (!file) return;
-                
-                ui.toast("Uploading...");
-                const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
-                
-                try {
-                    const snapshot = await uploadBytes(storageRef, file);
-                    const url = await getDownloadURL(snapshot.ref);
-                    const type = file.type.startsWith('image/') ? 'image' : 'file';
-                    await chat.send(url, type);
-                    ui.toast("Sent!");
-                } catch(e) {
-                    ui.showError("Upload failed");
-                }
-                input.value = ''; // reset
-            }
-        };
-
-        // --- 4. VIDEO CALL LOGIC (PeerJS) ---
-        window.videoCall = {
-            initPeer: () => {
-                // Clean user ID to be URL safe for PeerJS
-                const peerId = state.currentUser.nickname.replace(/[^a-zA-Z0-9]/g, '_');
-                state.peer = new Peer(peerId);
-
-                state.peer.on('open', (id) => { console.log('My peer ID is: ' + id); });
-                
-                // Incoming Call
-                state.peer.on('call', async (call) => {
-                    const confirm = window.confirm(`Incoming video call from ${call.peer}... Accept?`);
-                    if (confirm) {
-                        const stream = await videoCall.getMediaStream();
-                        call.answer(stream); // Answer with my stream
-                        videoCall.handleStream(call, stream);
-                    } else {
-                        call.close();
-                    }
-                });
-
-                // Setup device selection
-                videoCall.enumerateDevices();
-            },
-
-            start: async () => {
-                if (!state.activeChatUser) return;
-                const peerId = state.activeChatUser.nickname.replace(/[^a-zA-Z0-9]/g, '_');
-                
-                try {
-                    const stream = await videoCall.getMediaStream();
-                    const call = state.peer.call(peerId, stream);
-                    videoCall.handleStream(call, stream);
-                } catch (e) {
-                    ui.showError("Could not start call. Is the other user online?");
-                }
-            },
-
-            getMediaStream: async (videoSource = undefined, audioSource = undefined) => {
-                const constraints = {
-                    video: videoSource ? { deviceId: { exact: videoSource } } : true,
-                    audio: audioSource ? { deviceId: { exact: audioSource } } : true
+                    type: fileData ? fileData.type : 'text',
+                    fileUrl: fileData ? fileData.url : null
                 };
+
+                await addDoc(collection(db, "chats", chatId, "messages"), payload);
+                input.value = '';
+            }
+
+            async handleFileUpload(input) {
+                const file = input.files[0];
+                if(!file) return;
+                App.ui.toast("Uploading...");
+                
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    state.localStream = stream;
+                    const storageRef = ref(storage, `chat/${Date.now()}_${file.name}`);
+                    const snap = await uploadBytes(storageRef, file);
+                    const url = await getDownloadURL(snap.ref);
+                    const type = file.type.startsWith('image/') ? 'image' : 'file';
+                    await this.sendMessage({ url, type });
+                } catch(e) {
+                    App.ui.toast("Upload failed", 'error');
+                }
+                input.value = '';
+            }
+        }
+
+        // --- VIDEO CALL SERVICE (PeerJS + AudioContext) ---
+        class CallService {
+            constructor() {
+                this.audioCtx = null;
+                this.oscillator = null;
+            }
+
+            init() {
+                // PeerID must be URL-safe. Using removed special chars base64 of UID or similar is best.
+                // For simplicity: Clean nickname + substring of UID.
+                const safeId = `${State.user.nickname.replace(/\W/g, '')}_${State.user.uid.substr(0,5)}`;
+                
+                // Keep calling logic robust
+                this.peer = new Peer(safeId);
+
+                this.peer.on('open', (id) => {
+                    console.log('Peer connected: ' + id);
+                    // Update user status in DB if needed (Online/Offline)
+                });
+
+                this.peer.on('call', (call) => {
+                    this.handleIncomingCall(call);
+                });
+
+                this.peer.on('error', (err) => {
+                    console.error(err);
+                    App.ui.toast("Connection Error", 'error');
+                    this.endCall();
+                });
+            }
+
+            // Generate a Ringtone using Web Audio API (No files needed)
+            playRing(type = 'incoming') {
+                if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                this.stopRing();
+
+                this.oscillator = this.audioCtx.createOscillator();
+                const gainNode = this.audioCtx.createGain();
+
+                this.oscillator.connect(gainNode);
+                gainNode.connect(this.audioCtx.destination);
+
+                if (type === 'incoming') {
+                    // Classic phone ring pattern
+                    this.oscillator.type = 'sine';
+                    this.oscillator.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                    
+                    // Modulate volume to create "Ring-Ring"
+                    const now = this.audioCtx.currentTime;
+                    gainNode.gain.linearRampToValueAtTime(0.5, now + 0.1);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 2);
+                    
+                    this.oscillator.start(now);
+                    this.oscillator.stop(now + 2);
+                    
+                    // Loop
+                    this.ringInterval = setInterval(() => {
+                         const osc = this.audioCtx.createOscillator();
+                         const gn = this.audioCtx.createGain();
+                         osc.connect(gn);
+                         gn.connect(this.audioCtx.destination);
+                         osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+                         gn.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                         gn.gain.linearRampToValueAtTime(0.5, this.audioCtx.currentTime + 0.1);
+                         gn.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 2);
+                         osc.start();
+                         osc.stop(this.audioCtx.currentTime + 2);
+                    }, 3000);
+
+                } else if (type === 'dialing') {
+                    this.oscillator.frequency.setValueAtTime(400, this.audioCtx.currentTime);
+                    gainNode.gain.value = 0.1;
+                    this.oscillator.start();
+                }
+            }
+
+            stopRing() {
+                if (this.oscillator) {
+                    try { this.oscillator.stop(); } catch(e){}
+                    this.oscillator = null;
+                }
+                if (this.ringInterval) clearInterval(this.ringInterval);
+            }
+
+            async getStream() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    State.localStream = stream;
                     document.getElementById('local-video').srcObject = stream;
                     return stream;
                 } catch (e) {
-                    ui.showError("Camera access denied");
+                    App.ui.toast("Camera Access Denied", 'error');
                     throw e;
                 }
-            },
+            }
 
-            handleStream: (call, localStream) => {
-                state.currentCall = call;
-                document.getElementById('video-modal').classList.remove('hidden');
+            handleIncomingCall(call) {
+                if (State.currentCall) {
+                    // Busy? Reject automatically or notify.
+                    // For now, auto-reject
+                    call.close(); 
+                    return;
+                }
+                
+                this.tempCall = call; // Stash call pending acceptance
+                
+                // Parse caller name from peer ID (Format: Name_UidPart)
+                const callerRaw = call.peer.split('_')[0];
+                document.getElementById('caller-name').innerText = callerRaw;
+                document.getElementById('caller-avatar').innerText = callerRaw[0].toUpperCase();
+                
+                // Show UI
+                document.getElementById('incoming-modal').classList.add('show');
+                this.playRing('incoming');
+            }
 
+            async acceptCall() {
+                this.stopRing();
+                document.getElementById('incoming-modal').classList.remove('show');
+                
+                try {
+                    const stream = await this.getStream();
+                    this.tempCall.answer(stream);
+                    this.setupCallEvents(this.tempCall);
+                } catch (e) {
+                    this.rejectCall();
+                }
+            }
+
+            rejectCall() {
+                this.stopRing();
+                document.getElementById('incoming-modal').classList.remove('show');
+                if(this.tempCall) this.tempCall.close();
+                this.tempCall = null;
+            }
+
+            async startCall() {
+                if(!State.activeContact) return;
+                
+                // Reconstruct Peer ID
+                const targetPeerId = `${State.activeContact.nickname.replace(/\W/g, '')}_${State.activeContact.uid.substr(0,5)}`;
+                
+                try {
+                    const stream = await this.getStream();
+                    
+                    document.getElementById('call-overlay').classList.add('active');
+                    document.getElementById('call-status-text').innerText = "Dialing...";
+                    this.playRing('dialing');
+
+                    const call = this.peer.call(targetPeerId, stream);
+                    this.setupCallEvents(call);
+
+                } catch(e) {
+                    console.log(e);
+                }
+            }
+
+            setupCallEvents(call) {
+                State.currentCall = call;
+                document.getElementById('call-overlay').classList.add('active');
+                
                 call.on('stream', (remoteStream) => {
+                    this.stopRing();
+                    document.getElementById('call-status-text').innerText = "Connected";
+                    // wait a bit to hide status
+                    setTimeout(() => document.getElementById('call-status-text').style.display = 'none', 3000);
+                    
                     document.getElementById('remote-video').srcObject = remoteStream;
                 });
 
-                call.on('close', () => videoCall.endUI());
-                call.on('error', () => { ui.showError("Call error"); videoCall.end(); });
-            },
+                call.on('close', () => this.endCall());
+                call.on('error', () => this.endCall());
+            }
 
-            end: () => {
-                if (state.currentCall) state.currentCall.close();
-                videoCall.endUI();
-            },
-
-            endUI: () => {
-                document.getElementById('video-modal').classList.add('hidden');
-                if (state.localStream) {
-                    state.localStream.getTracks().forEach(track => track.stop());
+            endCall() {
+                this.stopRing();
+                if (State.currentCall) State.currentCall.close();
+                if (State.localStream) {
+                    State.localStream.getTracks().forEach(t => t.stop());
                 }
-                state.currentCall = null;
-            },
-
-            toggleMute: () => {
-                const audioTrack = state.localStream.getAudioTracks()[0];
-                if(audioTrack) {
-                    audioTrack.enabled = !audioTrack.enabled;
-                    document.getElementById('mute-btn').style.background = audioTrack.enabled ? '#333' : '#ea0038';
-                }
-            },
-
-            enumerateDevices: async () => {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoSelect = document.getElementById('video-source');
-                const audioSelect = document.getElementById('audio-source');
                 
-                videoSelect.innerHTML = '';
-                audioSelect.innerHTML = '';
-
-                devices.forEach(device => {
-                    const option = document.createElement('option');
-                    option.value = device.deviceId;
-                    option.text = device.label || `${device.kind} ${videoSelect.length + 1}`;
-                    if (device.kind === 'videoinput') videoSelect.appendChild(option);
-                    else if (device.kind === 'audioinput') audioSelect.appendChild(option);
-                });
+                State.currentCall = null;
+                State.localStream = null;
                 
-                // Show flip button only on mobile
-                if( /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent) ) {
-                   document.getElementById('flip-btn').classList.remove('hidden');
-                   document.getElementById('device-settings').classList.add('hidden'); // Hide complex menu on mobile
-                }
-            },
-            
-            updateStream: async () => {
-                if(state.currentCall) {
-                    const videoSource = document.getElementById('video-source').value;
-                    const audioSource = document.getElementById('audio-source').value;
-                    const newStream = await videoCall.getMediaStream(videoSource, audioSource);
+                document.getElementById('call-overlay').classList.remove('active');
+                document.getElementById('remote-video').srcObject = null;
+                document.getElementById('local-video').srcObject = null;
+                document.getElementById('call-status-text').style.display = 'block';
+            }
+
+            toggleAudio() {
+                if(!State.localStream) return;
+                const track = State.localStream.getAudioTracks()[0];
+                track.enabled = !track.enabled;
+                const btn = document.getElementById('btn-mute');
+                btn.style.background = track.enabled ? 'rgba(255,255,255,0.2)' : 'var(--danger)';
+                btn.innerHTML = track.enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+            }
+
+            toggleVideo() {
+                if(!State.localStream) return;
+                const track = State.localStream.getVideoTracks()[0];
+                track.enabled = !track.enabled;
+                const btn = document.getElementById('btn-cam');
+                btn.style.background = track.enabled ? 'rgba(255,255,255,0.2)' : 'var(--danger)';
+                btn.innerHTML = track.enabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+            }
+
+            async flipCamera() {
+                // Mobile only: Switch facingMode
+                if(!State.localStream) return;
+                const currentTrack = State.localStream.getVideoTracks()[0];
+                const currentSettings = currentTrack.getSettings();
+                
+                // If on desktop, this usually doesn't work well without device enumeration, 
+                // but for mobile, this toggles between 'user' and 'environment'.
+                const newMode = (currentSettings.facingMode === 'user') ? 'environment' : 'user';
+                
+                try {
+                    const newStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: newMode },
+                        audio: true
+                    });
                     
-                    // Replace tracks in current connection
+                    // Replace track in peer connection
                     const videoTrack = newStream.getVideoTracks()[0];
-                    const audioTrack = newStream.getAudioTracks()[0];
+                    const sender = State.currentCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
+                    sender.replaceTrack(videoTrack);
                     
-                    const senderVideo = state.currentCall.peerConnection.getSenders().find((s) => s.track.kind === videoTrack.kind);
-                    const senderAudio = state.currentCall.peerConnection.getSenders().find((s) => s.track.kind === audioTrack.kind);
+                    // Update local view
+                    document.getElementById('local-video').srcObject = newStream;
                     
-                    if(senderVideo) senderVideo.replaceTrack(videoTrack);
-                    if(senderAudio) senderAudio.replaceTrack(audioTrack);
+                    // Stop old tracks
+                    State.localStream.getTracks().forEach(t => t.stop());
+                    State.localStream = newStream;
+                    
+                } catch(e) {
+                    App.ui.toast("Cannot switch camera");
                 }
-            },
-
-            flipCamera: async () => {
-                // Simple toggle logic for mobile (implementation depends on facingMode constraint)
-                // For brevity, re-requesting stream without specific ID often triggers toggle on some OS
-                // or requires tracking current facingMode.
-                ui.toast("Switching camera...");
             }
+        }
+
+        // --- IMPORT HELPER ---
+        // Need to fetch getDocs from module scope for the Classes to use
+        import { getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // --- MAIN APP INITIALIZATION ---
+        const App = {
+            auth: new AuthService(),
+            chat: new ChatService(),
+            call: new CallService(),
+            ui: new UIManager(),
+            contacts: new ChatService() // Reuse logic
         };
 
-        // --- 5. UI HELPERS ---
-        window.ui = {
-            initProfile: () => {
-                document.getElementById('my-nick').innerText = state.currentUser.nickname;
-                document.getElementById('my-avatar').innerText = state.currentUser.nickname[0].toUpperCase();
-            },
+        // Attach to window for HTML events
+        window.App = App;
 
-            renderMessage: (msg) => {
-                const isMe = msg.senderId === state.currentUser.uid;
-                const div = document.createElement('div');
-                div.className = `message ${isMe ? 'msg-out' : 'msg-in'}`;
-                
-                let content = `<div>${msg.text}</div>`;
-                if (msg.fileUrl) {
-                    if (msg.fileType === 'image') {
-                        content = `<img src="${msg.fileUrl}" class="msg-img" onclick="window.open('${msg.fileUrl}')"><br>` + content;
-                    } else {
-                        content = `<a href="${msg.fileUrl}" target="_blank" style="color:var(--primary); text-decoration:underline;">📎 Download File</a><br>` + content;
-                    }
+        // Firebase Auth Listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if(userDoc.exists()) {
+                    State.user = userDoc.data();
+                    App.ui.showApp();
+                    App.chat.loadContacts();
+                    App.call.init(); // Init PeerJS
+                    App.ui.initTheme();
                 }
-
-                // Time formatting
-                const date = msg.createdAt ? msg.createdAt.toDate() : new Date();
-                const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                div.innerHTML = `
-                    ${content}
-                    <div class="msg-meta">
-                        ${timeStr} ${isMe ? '<i class="fas fa-check-double" style="color:#53bdeb;"></i>' : ''}
-                    </div>
-                `;
-                document.getElementById('messages').appendChild(div);
-            },
-
-            scrollToBottom: () => {
-                const el = document.getElementById('messages');
-                el.scrollTop = el.scrollHeight;
-            },
-
-            closeChat: () => {
-                document.body.classList.remove('chat-active');
-                state.activeChatUser = null;
-                if (state.unsubscribeChat) state.unsubscribeChat();
-            },
-
-            toggleTheme: () => {
-                const body = document.body;
-                const isDark = body.getAttribute('data-theme') === 'dark';
-                body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            },
-
-            showError: (msg) => {
-                const errDiv = document.getElementById('auth-error');
-                if (errDiv) errDiv.innerText = msg;
-                ui.toast(msg);
-            },
-
-            toast: (msg) => {
-                const t = document.getElementById('toast');
-                t.innerText = msg;
-                t.style.opacity = '1';
-                setTimeout(() => t.style.opacity = '0', 3000);
+            } else {
+                State.user = null;
+                App.ui.showAuth();
             }
-        };
+        });
+
     </script>
 </body>
 </html>
