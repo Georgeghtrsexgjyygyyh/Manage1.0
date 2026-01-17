@@ -1,35 +1,17 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#00a884">
-    <meta name="description" content="FamilyChat Pro - Secure Family Messenger">
     <title>FamilyChat Pro | Secure Messenger</title>
     
-    <!-- Альтернативные CDN для России -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap">
-    
-    <script>
-        // 🔧 Кэшируем critical ресурсы для офлайн-работы
-        if('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:text/javascript,' + encodeURIComponent(`
-                const CACHE = 'familychat-v1';
-                const RESOURCES = [
-                    'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css',
-                    'https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js',
-                    'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap'
-                ];
-                self.addEventListener('install', e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(RESOURCES))));
-                self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
-            `)).catch(() => console.log('SW registration skipped'));
-        }
-    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 
     <style>
-        /* --- ОСНОВНЫЕ СТИЛИ БЕЗ ИЗМЕНЕНИЙ --- */
+        /* --- 1. CORE VARIABLES & RESET --- */
         :root {
+            /* Colors - Light Mode */
             --primary: #00a884;
             --primary-dark: #008f6f;
             --bg-main: #d1d7db;
@@ -42,6 +24,8 @@
             --danger: #ef5350;
             --success: #25d366;
             --shadow-card: 0 4px 18px rgba(0,0,0,0.1);
+            
+            /* Dimensions */
             --header-height: 60px;
             --sidebar-width: 380px;
         }
@@ -60,10 +44,12 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; height: 100dvh; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; height: 100dvh; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; }
+        
         button { border: none; outline: none; cursor: pointer; transition: all 0.2s; font-family: inherit; }
         input { font-family: inherit; outline: none; }
         
+        /* --- 2. LAYOUT UTILITIES --- */
         .app-wrapper { display: flex; width: 100%; height: 100%; max-width: 1600px; margin: 0 auto; position: relative; background: var(--bg-panel); overflow: hidden; }
         .flex { display: flex; }
         .flex-col { flex-direction: column; }
@@ -71,28 +57,16 @@
         .hidden { display: none !important; }
         .scroll-y { overflow-y: auto; scrollbar-width: thin; }
 
-        /* --- ИНДИКАТОР ПОДКЛЮЧЕНИЯ --- */
-        #connection-status {
-            position: fixed; top: 10px; right: 10px; z-index: 9999;
-            padding: 8px 16px; border-radius: 20px; font-size: 12px;
-            background: rgba(0,0,0,0.7); color: white;
-            backdrop-filter: blur(10px);
-        }
-        #connection-status.online { background: var(--success); }
-        #connection-status.offline { background: var(--danger); }
-        #connection-status.connecting { background: #ff9800; }
-
-        /* --- СТИЛИ АВТОРИЗАЦИИ --- */
+        /* --- 3. AUTH SCREEN --- */
         #auth-view { position: absolute; inset: 0; z-index: 2000; background: var(--bg-main); display: flex; align-items: center; justify-content: center; padding: 20px; }
         .auth-card { background: var(--bg-panel); width: 100%; max-width: 450px; padding: 40px; border-radius: 12px; box-shadow: var(--shadow-card); text-align: center; }
         .auth-logo { width: 80px; height: 80px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px; }
         .auth-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid var(--text-sub); border-radius: 8px; font-size: 16px; background: var(--bg-panel); color: var(--text-main); }
         .btn-primary { width: 100%; padding: 15px; background: var(--primary); color: white; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 10px; }
         .btn-primary:active { transform: scale(0.98); }
-        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
         .auth-switch { margin-top: 20px; color: var(--primary); cursor: pointer; font-size: 14px; }
 
-        /* --- СПИСОК КОНТАКТОВ --- */
+        /* --- 4. SIDEBAR (CONTACTS) --- */
         aside { width: var(--sidebar-width); border-right: 1px solid rgba(0,0,0,0.1); display: flex; flex-direction: column; background: var(--bg-panel); z-index: 10; height: 100%; }
         .header { height: var(--header-height); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-panel); border-bottom: 1px solid rgba(0,0,0,0.05); }
         .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--text-sub); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; object-fit: cover; }
@@ -110,8 +84,9 @@
         .contact-status { font-size: 13px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .unread-badge { background: var(--success); color: white; font-size: 12px; padding: 2px 6px; border-radius: 10px; margin-left: auto; }
 
-        /* --- ЧАТ --- */
+        /* --- 5. CHAT AREA --- */
         main { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); position: relative; height: 100%; }
+        /* Background Pattern */
         main::before { content: ""; position: absolute; inset: 0; opacity: 0.4; background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239ca3af' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E"); pointer-events: none; }
 
         .chat-header { background: var(--bg-panel); height: var(--header-height); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 5; }
@@ -121,6 +96,7 @@
         .chat-actions i:hover { background: rgba(0,0,0,0.05); }
 
         .messages-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; z-index: 2; }
+        
         .msg { max-width: 65%; padding: 8px 12px; border-radius: 8px; font-size: 15px; line-height: 1.4; position: relative; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .msg-in { align-self: flex-start; background: var(--incoming); border-top-left-radius: 0; }
         .msg-out { align-self: flex-end; background: var(--outgoing); border-top-right-radius: 0; }
@@ -128,18 +104,22 @@
         .msg-img { max-width: 100%; border-radius: 6px; margin-bottom: 4px; display: block; cursor: pointer; }
 
         .input-area { background: var(--bg-panel); padding: 10px 16px; display: flex; align-items: center; gap: 10px; z-index: 5; }
-        .input-field { flex: 1; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 12px; max-height: 100px; overflow-y: auto; color: var(--text-main); border: none; }
-        .btn-icon { color: var(--text-sub); font-size: 22px; padding: 8px; display: flex; align-items: center; justify-content: center; background: none; }
+        .input-field { flex: 1; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 12px; max-height: 100px; overflow-y: auto; color: var(--text-main); }
+        .btn-icon { color: var(--text-sub); font-size: 22px; padding: 8px; display: flex; align-items: center; justify-content: center; }
         .btn-send { color: var(--primary); }
 
-        /* --- ВИДЕОЗВОНКИ --- */
+        /* --- 6. VIDEO CALL OVERLAY --- */
         #call-overlay { position: fixed; inset: 0; background: #000; z-index: 3000; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         #call-overlay.active { opacity: 1; pointer-events: auto; }
+        
         .video-grid { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        video { background: #000; width: 100%; height: 100%; object-fit: cover; }
+        video { background: #000; }
         #remote-video { width: 100%; height: 100%; object-fit: contain; }
         #local-video { position: absolute; bottom: 100px; right: 20px; width: 120px; height: 160px; border-radius: 12px; border: 2px solid white; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 3002; transition: all 0.3s; }
+        
+        /* Dragging local video on desktop */
         #local-video.dragging { opacity: 0.8; }
+
         .call-controls { position: absolute; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; gap: 20px; z-index: 3003; padding-bottom: env(safe-area-inset-bottom); }
         .ctrl-btn { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.2s; }
         .ctrl-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
@@ -147,9 +127,8 @@
         .ctrl-btn.active { background: white; color: #333; }
 
         .call-status-pill { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 30px; color: white; font-size: 14px; z-index: 3003; backdrop-filter: blur(5px); }
-        .call-duration { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); color: white; font-size: 14px; z-index: 3003; background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 20px; display: none; }
 
-        /* --- МОДАЛ ВХОДЯЩЕГО ЗВОНКА --- */
+        /* --- 7. INCOMING CALL MODAL --- */
         #incoming-modal { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-150%); background: rgba(32, 44, 51, 0.95); width: 90%; max-width: 400px; padding: 20px; border-radius: 16px; z-index: 4000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between; color: white; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(10px); }
         #incoming-modal.show { transform: translateX(-50%) translateY(0); }
         .incoming-info { display: flex; align-items: center; gap: 15px; }
@@ -159,75 +138,60 @@
 
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
 
-        /* --- МОБИЛЬНАЯ ВЕРСИЯ --- */
+        /* --- 8. MOBILE RESPONSIVE --- */
         @media (max-width: 768px) {
             .app-wrapper { border-radius: 0; box-shadow: none; }
             aside { width: 100%; position: absolute; }
             main { width: 100%; position: absolute; transform: translateX(100%); transition: transform 0.3s ease-in-out; z-index: 20; }
+            
             body.chat-open aside { transform: translateX(-20%); opacity: 0; }
             body.chat-open main { transform: translateX(0); }
+            
             .chat-back-btn { display: block; }
+            
             #local-video { width: 90px; height: 130px; bottom: 120px; right: 15px; }
             .msg { font-size: 16px; }
         }
 
-        /* --- УВЕДОМЛЕНИЯ --- */
+        /* --- 9. TOAST --- */
         #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 5000; text-align: center; width: 100%; pointer-events: none; }
         .toast { display: inline-block; background: #333; color: white; padding: 12px 24px; border-radius: 30px; margin-top: 10px; opacity: 0; transition: 0.3s; transform: translateY(20px); font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .toast.visible { opacity: 1; transform: translateY(0); }
 
-        /* --- ИНДИКАТОР ЗАГРУЗКИ --- */
-        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; margin-left: 10px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* --- МОДАЛ НАСТРОЕК --- */
-        .settings-modal {
-            position: fixed; inset: 0; z-index: 5000; background: rgba(0,0,0,0.8);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .settings-card {
-            background: var(--bg-panel); padding: 30px; border-radius: 16px;
-            max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;
-        }
-        .settings-card h3 { margin-bottom: 20px; color: var(--text-main); }
-        .settings-row { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .toggle-switch { position: relative; width: 50px; height: 24px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider { position: absolute; inset: 0; background: #ccc; border-radius: 24px; transition: 0.4s; }
-        .toggle-slider:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.4s; }
-        input:checked + .toggle-slider { background: var(--primary); }
-        input:checked + .toggle-slider:before { transform: translateX(26px); }
+        /* --- 10. LOADING SPINNER --- */
+        .loading-spinner { border: 2px solid var(--text-sub); border-top: 2px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- Индикатор соединения -->
-    <div id="connection-status" class="connecting">Connecting...</div>
-
-    <!-- АВТОРИЗАЦИЯ -->
     <div id="auth-view">
         <div class="auth-card">
             <div class="auth-logo"><i class="fas fa-users"></i></div>
-            <h2 style="margin-bottom: 10px;">FamilyChat Pro</h2>
+            <h2 style="margin-bottom: 10px;">FamilyChat</h2>
             <p style="color: var(--text-sub); margin-bottom: 25px;">Connect with your loved ones</p>
             
             <div id="auth-error" style="color: var(--danger); font-size: 14px; margin-bottom: 15px; display: none;"></div>
             
-            <input type="text" id="auth-nick" class="auth-input" placeholder="Your Nickname (e.g. Mom)" autocomplete="off" maxlength="20">
-            <input type="password" id="auth-pass" class="auth-input" placeholder="Password (min 6 characters)" autocomplete="new-password" minlength="6">
+            <input type="text" id="auth-nick" class="auth-input" placeholder="Your Nickname (e.g. Mom)" autocomplete="off">
+            <input type="password" id="auth-pass" class="auth-input" placeholder="Password (simple)" autocomplete="new-password">
             
             <button id="btn-auth-action" class="btn-primary" onclick="App.auth.login()">
-                <span id="auth-btn-text">Login</span>
-                <span class="loader hidden" id="auth-loader"></span>
+                Login
+                <span id="auth-loading" class="loading-spinner hidden"></span>
             </button>
             
             <div class="auth-switch" onclick="App.auth.toggleMode()">
                 <span id="auth-switch-text">New here? Create Account</span>
             </div>
+            
+            <div style="margin-top: 20px; font-size: 12px; color: var(--text-sub);">
+                ⚠️ Requires HTTPS connection for video calls<br>
+                ⚠️ Replace Firebase config in code
+            </div>
         </div>
     </div>
 
-    <!-- ГЛАВНОЕ ПРИЛОЖЕНИЕ -->
     <div id="app-view" class="app-wrapper hidden">
         
         <aside>
@@ -250,7 +214,12 @@
                 </div>
             </div>
 
-            <div id="contacts-list" class="contact-list"></div>
+            <div id="contacts-list" class="contact-list">
+                <div class="center flex flex-col" style="height: 100%; color: var(--text-sub); opacity: 0.6;">
+                    <i class="fas fa-search" style="font-size: 32px; margin-bottom: 10px;"></i>
+                    <p>Search for contacts to add</p>
+                </div>
+            </div>
         </aside>
 
         <main>
@@ -279,7 +248,7 @@
 
             <div id="input-area" class="input-area hidden">
                 <button class="btn-icon" onclick="document.getElementById('file-upload').click()"><i class="fas fa-paperclip"></i></button>
-                <input type="file" id="file-upload" hidden onchange="App.chat.handleFileUpload(this)" accept="image/*,.pdf,.doc,.docx,.txt">
+                <input type="file" id="file-upload" hidden onchange="App.chat.handleFileUpload(this)">
                 
                 <input type="text" id="msg-input" class="input-field" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') App.chat.sendMessage()">
                 
@@ -288,13 +257,12 @@
         </main>
     </div>
 
-    <!-- ВХОДЯЩИЙ ЗВОНОК -->
     <div id="incoming-modal">
         <div class="incoming-info">
             <div id="caller-avatar" class="avatar" style="background: white; color: #333;">?</div>
             <div>
                 <div style="font-size: 12px; opacity: 0.8;">Incoming Video Call</div>
-                <div id="caller-name" style="font-weight: bold; font-size: 18px;">Unknown</div>
+                <div id="caller-name" style="font-weight: bold; font-size: 18px;">Grandma</div>
             </div>
         </div>
         <div class="incoming-actions">
@@ -303,10 +271,8 @@
         </div>
     </div>
 
-    <!-- ВИДЕОЗВОНОК -->
     <div id="call-overlay">
-        <div class="call-status-pill" id="call-status-text">Connecting...</div>
-        <div class="call-duration" id="call-duration"></div>
+        <div class="call-status-pill" id="call-status-text">Preparing...</div>
         
         <div class="video-grid">
             <video id="remote-video" autoplay playsinline></video>
@@ -321,107 +287,42 @@
         </div>
     </div>
 
-    <!-- УВЕДОМЛЕНИЯ -->
     <div id="toast-container"></div>
 
-    <script>
-        // 🔧 КОНФИГУРАЦИЯ FIREBASE (ЗАМЕНИТЕ НА ВАШИ ДАННЫЕ)
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDXsvsaG8IdcjZv4iG4WHjPneGvcxywuTk",
-  authDomain: "bobba-591c5.firebaseapp.com",
-  projectId: "bobba-591c5",
-  storageBucket: "bobba-591c5.firebasestorage.app",
-  messagingSenderId: "839501020120",
-  appId: "1:839501020120:web:0e58d4759785a1fadfd0ad",
-  measurementId: "G-C3D5TB22F0"
-};
-
-        // 🔧 РЕЗЕРВНЫЕ CDN ДЛЯ РОССИИ И ДРУГИХ СТРАН
-        const CDN_FALLBACKS = {
-            firebase: [
-                'https://www.gstatic.com/firebasejs/9.22.0',
-                'https://cdn.jsdelivr.net/npm/firebase@9.22.0',
-                'https://unpkg.com/firebase@9.22.0/dist'
-            ],
-            peerjs: [
-                'https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js',
-                'https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js'
-            ]
-        };
-    </script>
-
-    <!-- Альтернативный способ загрузки модулей -->
     <script type="module">
-        // 🔧 УБИРАЕМ ПРОБЕЛЫ В URL
-        let firebaseUrl = 'https://www.gstatic.com/firebasejs/9.22.0';
-        let peerjsUrl = 'https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js';
-        
-        // Проверяем доступность CDN
-        try {
-            await fetch(firebaseUrl + '/firebase-app.js', { mode: 'no-cors', method: 'HEAD' });
-        } catch(e) {
-            console.log('Primary CDN unavailable, using fallback');
-            firebaseUrl = 'https://cdn.jsdelivr.net/npm/firebase@9.22.0/dist/esm';
-            peerjsUrl = 'https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js';
-        }
+        // --- FIREBASE IMPORTS ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-        // 🔧 ДИНАМИЧЕСКИЙ ИМПОРТ МОДУЛЕЙ
-        const [{ initializeApp }, 
-               { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile },
-               { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDoc, updateDoc, getDocs },
-               { getStorage, ref, uploadBytes, getDownloadURL }] = await Promise.all([
-            import(firebaseUrl + '/firebase-app.js'),
-            import(firebaseUrl + '/firebase-auth.js'),
-            import(firebaseUrl + '/firebase-firestore.js'),
-            import(firebaseUrl + '/firebase-storage.js')
-        ]).catch(() => {
-            App.ui.toast('Failed to load Firebase SDK. Try VPN or proxy.', 'error');
-            throw new Error('Firebase SDK unavailable');
-        });
+        /**
+         * ------------------------------------------------------------------
+         * CONFIGURATION - ВАЖНО: ЗАМЕНИТЕ НА ВАШИ ДАННЫЕ FIREBASE
+         * Получите их в Firebase Console → Project Settings → General
+         * ------------------------------------------------------------------
+         */
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY_HERE",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-        // 🔧 ЗАГРУЗКА PEERJS
-        if(!window.Peer) {
-            await new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = peerjsUrl;
-                script.onload = resolve;
-                script.onerror = () => {
-                    // Пробуем второй CDN
-                    script.src = 'https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js';
-                    script.onload = resolve;
-                    script.onerror = () => reject(new Error('PeerJS unavailable'));
-                };
-                document.head.appendChild(script);
-            });
-        }
-
-        // 🔧 ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        // 🔧 ДЛЯ РОССИИ: ИСПОЛЬЗУЕМ ЭМУЛЯТОРЫ ПРИ НЕОБХОДИМОСТИ
-        if(location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-            // connectFirestoreEmulator(db, 'localhost', 8080);
-            // connectAuthEmulator(auth, "http://localhost:9099");
-            // connectStorageEmulator(storage, "localhost", 9199);
-        }
-
-        // 🔧 ПРОВЕРКА СОЕДИНЕНИЯ С FIREBASE
-        const checkFirebaseConnection = async () => {
-            const status = document.getElementById('connection-status');
-            try {
-                await getDoc(doc(db, '.info/connected'));
-                status.textContent = 'Online';
-                status.className = 'online';
-            } catch(e) {
-                status.textContent = 'Offline';
-                status.className = 'offline';
-                App.ui.toast('Connection lost. Using offline mode.', 'warning');
-            }
-        };
+        /**
+         * ------------------------------------------------------------------
+         * CORE APPLICATION STATE & SERVICES
+         * Professional MVC Structure
+         * ------------------------------------------------------------------
+         */
 
         const State = {
             user: null,
@@ -432,14 +333,10 @@ const firebaseConfig = {
             localStream: null,
             unsubscribeChat: null,
             isCalling: false,
-            callStartTime: null,
-            callDurationInterval: null,
-            tempCall: null,
-            callTimeout: null,
-            incomingTimeout: null,
-            firebaseConnected: false
+            tempCall: null
         };
 
+        // --- UI MANAGER: Handles DOM manipulation, Themes, Toasts ---
         class UIManager {
             constructor() {
                 this.dom = {
@@ -447,7 +344,8 @@ const firebaseConfig = {
                     app: document.getElementById('app-view'),
                     msgArea: document.getElementById('messages-area'),
                     inputArea: document.getElementById('input-area'),
-                    contactList: document.getElementById('contacts-list')
+                    contactList: document.getElementById('contacts-list'),
+                    authLoading: document.getElementById('auth-loading')
                 };
             }
 
@@ -456,27 +354,27 @@ const firebaseConfig = {
                 const el = document.createElement('div');
                 el.className = 'toast';
                 el.textContent = msg;
-                if(type === 'error') el.style.background = 'var(--danger)';
-                if(type === 'success') el.style.background = 'var(--success)';
-                if(type === 'warning') el.style.background = '#ff9800';
+                if(type === 'error') el.style.borderLeft = '4px solid var(--danger)';
                 container.appendChild(el);
+                
                 requestAnimationFrame(() => {
                     el.classList.add('visible');
                     setTimeout(() => {
                         el.classList.remove('visible');
                         setTimeout(() => el.remove(), 300);
-                    }, 4000);
+                    }, 3000);
                 });
             }
 
-            setLoading(isLoading, elementId = null) {
-                if(elementId) {
-                    const el = document.getElementById(elementId);
-                    if(el) el.style.display = isLoading ? 'inline-block' : 'none';
-                }
-                const btn = document.getElementById('btn-auth-action');
-                if(btn) btn.disabled = isLoading;
+            setLoading(isLoading, element = null) {
                 document.body.style.cursor = isLoading ? 'wait' : 'default';
+                if(element) {
+                    element.style.pointerEvents = isLoading ? 'none' : 'auto';
+                    element.style.opacity = isLoading ? '0.7' : '1';
+                }
+                if(this.dom.authLoading) {
+                    this.dom.authLoading.classList.toggle('hidden', !isLoading);
+                }
             }
 
             toggleTheme() {
@@ -484,14 +382,12 @@ const firebaseConfig = {
                 const current = body.getAttribute('data-theme');
                 const next = current === 'dark' ? 'light' : 'dark';
                 body.setAttribute('data-theme', next);
-                try { localStorage.setItem('theme', next); } catch(e) {}
+                localStorage.setItem('theme', next);
             }
 
             initTheme() {
-                try {
-                    const saved = localStorage.getItem('theme') || 'light';
-                    document.body.setAttribute('data-theme', saved);
-                } catch(e) {}
+                const saved = localStorage.getItem('theme') || 'light';
+                document.body.setAttribute('data-theme', saved);
             }
 
             showApp() {
@@ -499,8 +395,6 @@ const firebaseConfig = {
                 this.dom.app.classList.remove('hidden');
                 document.getElementById('my-nick').textContent = State.user.nickname;
                 document.getElementById('my-avatar').textContent = State.user.nickname[0].toUpperCase();
-                checkFirebaseConnection();
-                setInterval(checkFirebaseConnection, 30000); // Проверка каждые 30 сек
             }
 
             showAuth() {
@@ -519,57 +413,16 @@ const firebaseConfig = {
             closeChat() {
                 document.body.classList.remove('chat-open');
                 State.activeContact = null;
-                if(State.unsubscribeChat) {
-                    State.unsubscribeChat();
-                    State.unsubscribeChat = null;
-                }
+                if(State.unsubscribeChat) State.unsubscribeChat();
             }
 
             showProfileSettings() {
-                const modal = document.createElement('div');
-                modal.className = 'settings-modal';
-                modal.innerHTML = `
-                    <div class="settings-card">
-                        <h3>⚙️ Settings</h3>
-                        <div class="settings-row">
-                            <span>Dark Mode</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" ${document.body.getAttribute('data-theme') === 'dark' ? 'checked' : ''} onchange="App.ui.toggleTheme()">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <div class="settings-row">
-                            <span>Sound Notifications</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <div class="settings-row">
-                            <span>Data Saver</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="data-saver">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <button class="btn-primary" onclick="this.parentElement.parentElement.remove()" style="margin-top: 20px;">Close</button>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-                modal.onclick = (e) => { if(e.target === modal) modal.remove(); };
-            }
-
-            updateCallDuration() {
-                if (!State.callStartTime) return;
-                const elapsed = Math.floor((Date.now() - State.callStartTime) / 1000);
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                const durationEl = document.getElementById('call-duration');
-                durationEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                durationEl.style.display = 'block';
+                // Placeholder for future implementation
+                this.toast("Profile settings coming soon!");
             }
         }
 
+        // --- AUTH SERVICE: Login, Register, Logout ---
         class AuthService {
             constructor() {
                 this.isRegistering = false;
@@ -577,10 +430,9 @@ const firebaseConfig = {
 
             toggleMode() {
                 this.isRegistering = !this.isRegistering;
-                document.getElementById('auth-btn-text').textContent = this.isRegistering ? 'Create Account' : 'Login';
+                document.getElementById('btn-auth-action').textContent = this.isRegistering ? 'Create Account' : 'Login';
                 document.getElementById('auth-switch-text').textContent = this.isRegistering ? 'Have an account? Login' : 'New here? Create Account';
                 document.getElementById('auth-error').style.display = 'none';
-                document.getElementById('auth-nick').placeholder = this.isRegistering ? 'Choose Nickname (unique)' : 'Your Nickname';
             }
 
             async login() {
@@ -591,65 +443,50 @@ const firebaseConfig = {
                     this.showError("Please fill all fields");
                     return;
                 }
-
-                if(nick.length < 2) {
-                    this.showError("Nickname must be at least 2 characters");
+                
+                if(nick.length < 3) {
+                    this.showError("Nickname must be at least 3 characters");
                     return;
                 }
-
-                if(this.isRegistering && pass.length < 6) {
+                
+                if(pass.length < 6) {
                     this.showError("Password must be at least 6 characters");
                     return;
                 }
 
-                // 🔧 ЭМУЛЯЦИЯ EMAIL ДЛЯ FIREBASE
-                const email = `user_${nick.toLowerCase().replace(/[^a-z0-9]/g, '')}_${Math.random().toString(36).substr(2, 9)}@familychat.app`;
+                const email = `${nick.toLowerCase().replace(/[^a-z0-9]/g, '')}@familyconnect.app`;
 
                 try {
-                    App.ui.setLoading(true, 'auth-loader');
+                    App.ui.setLoading(true, document.getElementById('btn-auth-action'));
                     document.getElementById('auth-error').style.display = 'none';
-
+                    
                     if (this.isRegistering) {
-                        // Проверка уникальности никнейма
+                        // Check uniqueness
                         const q = query(collection(db, "users"), where("nickname", "==", nick));
                         const check = await getDocs(q);
                         if (!check.empty) {
-                            throw new Error("Nickname already taken. Try adding numbers.");
+                            throw new Error("This nickname is already taken. Choose another one.");
                         }
 
-                        // Создание пользователя
+                        // Create Auth user
                         const cred = await createUserWithEmailAndPassword(auth, email, pass);
                         
-                        // Создание документа в Firestore
+                        // Create Firestore Doc
                         await setDoc(doc(db, "users", cred.user.uid), {
                             uid: cred.user.uid,
                             nickname: nick,
                             contacts: [],
-                            createdAt: serverTimestamp(),
-                            email: email // Сохраняем для восстановления
+                            createdAt: serverTimestamp()
                         });
                         
                         await updateProfile(cred.user, { displayName: nick });
-                        App.ui.toast("✅ Account created successfully!", "success");
                     } else {
-                        // 🔧 ПОИСК ПОЛЬЗОВАТЕЛЯ ПО НИКНЕЙМУ
-                        const usersRef = collection(db, "users");
-                        const q = query(usersRef, where("nickname", "==", nick));
-                        const querySnapshot = await getDocs(q);
-                        
-                        if(querySnapshot.empty) {
-                            throw new Error("User not found. Check nickname or create account.");
-                        }
-                        
-                        const userData = querySnapshot.docs[0].data();
-                        // Вход с использованием сохраненного email
-                        await signInWithEmailAndPassword(auth, userData.email, pass);
+                        await signInWithEmailAndPassword(auth, email, pass);
                     }
                 } catch (e) {
-                    console.error("Auth error:", e);
-                    this.showError(e.message.replace("Firebase: ", "").replace("auth/", ""));
+                    this.showError(e.message.replace("Firebase: ", "").replace("Error ", ""));
                 } finally {
-                    App.ui.setLoading(false, 'auth-loader');
+                    App.ui.setLoading(false);
                 }
             }
 
@@ -660,41 +497,107 @@ const firebaseConfig = {
             }
 
             logout() {
-                if(App.call.peer) {
-                    App.call.peer.destroy();
-                }
+                if(State.currentCall) App.call.endCall();
+                if(State.peer) State.peer.destroy();
                 signOut(auth).then(() => {
-                    window.location.reload();
-                }).catch(e => {
-                    console.error("Logout error:", e);
                     window.location.reload();
                 });
             }
         }
 
+        // --- CHAT & CONTACTS SERVICE ---
         class ChatService {
             constructor() {
-                this.messageQueue = []; // Очередь для офлайн сообщений
-                this.isOnline = false;
+                this.init();
+            }
+
+            init() {
+                // Initialize drag functionality for local video
+                this.initVideoDrag();
+            }
+
+            initVideoDrag() {
+                let isDragging = false;
+                let currentX;
+                let currentY;
+                let initialX;
+                let initialY;
+                let xOffset = 0;
+                let yOffset = 0;
+
+                const video = document.getElementById('local-video');
+
+                function dragStart(e) {
+                    if (e.type === "touchstart") {
+                        initialX = e.touches[0].clientX - xOffset;
+                        initialY = e.touches[0].clientY - yOffset;
+                    } else {
+                        initialX = e.clientX - xOffset;
+                        initialY = e.clientY - yOffset;
+                    }
+
+                    if (e.target === video) {
+                        isDragging = true;
+                        video.classList.add('dragging');
+                    }
+                }
+
+                function dragEnd(e) {
+                    initialX = currentX;
+                    initialY = currentY;
+                    isDragging = false;
+                    video.classList.remove('dragging');
+                }
+
+                function drag(e) {
+                    if (isDragging) {
+                        e.preventDefault();
+                        if (e.type === "touchmove") {
+                            currentX = e.touches[0].clientX - initialX;
+                            currentY = e.touches[0].clientY - initialY;
+                        } else {
+                            currentX = e.clientX - initialX;
+                            currentY = e.clientY - initialY;
+                        }
+
+                        xOffset = currentX;
+                        yOffset = currentY;
+
+                        video.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                    }
+                }
+
+                video.addEventListener('mousedown', dragStart);
+                video.addEventListener('mouseup', dragEnd);
+                video.addEventListener('mousemove', drag);
+
+                // Touch events for mobile
+                video.addEventListener('touchstart', dragStart);
+                video.addEventListener('touchend', dragEnd);
+                video.addEventListener('touchmove', drag);
             }
 
             async loadContacts() {
-                if(!State.user || !State.user.contacts) return;
+                if(!State.user || !State.user.contacts) {
+                    this.renderEmptyContactList();
+                    return;
+                }
+                
                 const list = document.getElementById('contacts-list');
                 list.innerHTML = '';
 
                 if(State.user.contacts.length === 0) {
-                    list.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.6;">Search for family members to add them!</div>';
+                    this.renderEmptyContactList();
                     return;
                 }
 
-                try {
-                    // Загрузка контактов батчами
-                    const chunks = [];
-                    for (let i = 0; i < State.user.contacts.length; i += 10) {
-                        chunks.push(State.user.contacts.slice(i, i + 10));
-                    }
+                // Batching logic for scalability (blocks of 10)
+                const chunks = [];
+                for (let i = 0; i < State.user.contacts.length; i += 10) {
+                    chunks.push(State.user.contacts.slice(i, i + 10));
+                }
 
+                try {
                     for (const chunk of chunks) {
                         const q = query(collection(db, "users"), where("uid", "in", chunk));
                         const snap = await getDocs(q);
@@ -706,17 +609,17 @@ const firebaseConfig = {
                     }
                 } catch (e) {
                     console.error("Error loading contacts:", e);
-                    App.ui.toast("Offline mode: Showing cached contacts", "warning");
-                    // Показываем из кэша
-                    Object.values(State.contactsMap).forEach(c => this.renderContactItem(c));
+                    App.ui.toast("Error loading contacts", 'error');
                 }
+            }
+
+            renderEmptyContactList() {
+                const list = document.getElementById('contacts-list');
+                list.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.6;">Search for family members to add them!</div>';
             }
 
             renderContactItem(contact) {
                 const list = document.getElementById('contacts-list');
-                const existing = list.querySelector(`[data-uid="${contact.uid}"]`);
-                if(existing) return;
-
                 const div = document.createElement('div');
                 div.className = 'contact-item';
                 div.dataset.uid = contact.uid;
@@ -736,71 +639,71 @@ const firebaseConfig = {
                 const val = input.value.trim();
                 
                 if(!val) {
-                    App.ui.toast("Enter a nickname to search", "error");
+                    App.ui.toast("Enter a nickname to search", 'error');
                     return;
                 }
                 
                 if(val === State.user.nickname) {
-                    App.ui.toast("That's you!", "error");
+                    App.ui.toast("That's you!", 'error');
                     return;
                 }
 
-                App.ui.setLoading(true);
                 App.ui.toast("Searching...");
-
+                
                 try {
                     const q = query(collection(db, "users"), where("nickname", "==", val));
                     const snap = await getDocs(q);
                     
                     if(snap.empty) {
-                        App.ui.toast("User not found", "error");
+                        App.ui.toast("User not found", 'error');
                     } else {
                         const newUser = snap.docs[0].data();
-                        if(newUser.uid === State.user.uid) {
-                            App.ui.toast("That's you!", "error");
-                            return;
-                        }
-                        
-                        const myRef = doc(db, "users", State.user.uid);
-                        let current = State.user.contacts || [];
-                        
-                        if(!current.includes(newUser.uid)) {
-                            current.push(newUser.uid);
-                            await updateDoc(myRef, { contacts: current });
-                            State.user.contacts = current;
-                            this.renderContactItem(newUser);
-                            State.contactsMap[newUser.uid] = newUser;
-                            App.ui.toast(`✅ Added ${newUser.nickname}`, "success");
-                            input.value = '';
-                        } else {
-                            App.ui.toast("Already in contacts", "info");
-                        }
+                        await this.addContact(newUser);
+                        input.value = '';
                     }
                 } catch (e) {
                     console.error("Search error:", e);
-                    App.ui.toast("Search failed. Check connection.", "error");
-                } finally {
-                    App.ui.setLoading(false);
+                    App.ui.toast("Search failed", 'error');
+                }
+            }
+
+            async addContact(newUser) {
+                if(State.user.contacts.includes(newUser.uid)) {
+                    App.ui.toast("Already in contacts");
+                    return;
+                }
+
+                try {
+                    const myRef = doc(db, "users", State.user.uid);
+                    const updatedContacts = [...(State.user.contacts || []), newUser.uid];
+                    
+                    await updateDoc(myRef, { contacts: updatedContacts });
+                    State.user.contacts = updatedContacts;
+                    
+                    State.contactsMap[newUser.uid] = newUser;
+                    this.renderContactItem(newUser);
+                    App.ui.toast("Added to contacts!", 'success');
+                } catch (e) {
+                    console.error("Add contact error:", e);
+                    App.ui.toast("Failed to add contact", 'error');
                 }
             }
 
             startChat(contact) {
-                State.activeContact = contact;
-                App.ui.openChatUI(contact);
-
+                // Update active state
                 document.querySelectorAll('.contact-item').forEach(item => {
                     item.classList.remove('active');
-                    if(item.dataset.uid === contact.uid) {
-                        item.classList.add('active');
-                    }
                 });
+                document.querySelector(`[data-uid="${contact.uid}"]`)?.classList.add('active');
+
+                State.activeContact = contact;
+                App.ui.openChatUI(contact);
 
                 const chatId = this.getChatId(State.user.uid, contact.uid);
                 const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt", "asc"));
 
-                if(State.unsubscribeChat) {
-                    State.unsubscribeChat();
-                }
+                // Unsubscribe from previous chat
+                if(State.unsubscribeChat) State.unsubscribeChat();
 
                 State.unsubscribeChat = onSnapshot(q, (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
@@ -809,8 +712,8 @@ const firebaseConfig = {
                         }
                     });
                 }, (error) => {
-                    console.error("Chat snapshot error:", error);
-                    App.ui.toast("Connection lost. Messages may be delayed.", "warning");
+                    console.error("Chat listener error:", error);
+                    App.ui.toast("Error loading messages", 'error');
                 });
             }
 
@@ -823,15 +726,15 @@ const firebaseConfig = {
                 const div = document.createElement('div');
                 div.className = `msg ${isMe ? 'msg-out' : 'msg-in'}`;
                 
-                let content = `<span>${msg.text || ''}</span>`;
+                let content = `<span>${this.escapeHtml(msg.text || '')}</span>`;
                 
-                if(msg.type === 'image') {
-                    content = `<img src="${msg.fileUrl}" class="msg-img" onclick="window.open('${msg.fileUrl}', '_blank')" alt="Image">` + content;
-                } else if (msg.type === 'file') {
-                    content = `<a href="${msg.fileUrl}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fas fa-file"></i> File</a><br>` + content;
+                if(msg.type === 'image' && msg.fileUrl) {
+                    content = `<img src="${msg.fileUrl}" class="msg-img" onclick="window.open('${msg.fileUrl}')" alt="Image">` + content;
+                } else if (msg.type === 'file' && msg.fileUrl) {
+                    content = `<a href="${msg.fileUrl}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fas fa-file"></i> ${this.escapeHtml(msg.text || 'File')}</a><br>` + content;
                 }
 
-                const date = msg.createdAt ? msg.createdAt.toDate() : new Date();
+                const date = msg.createdAt?.toDate ? msg.createdAt.toDate() : new Date();
                 const time = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
                 div.innerHTML = `${content} <span class="msg-time">${time}</span>`;
@@ -841,8 +744,15 @@ const firebaseConfig = {
                 area.scrollTop = area.scrollHeight;
             }
 
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
             async sendMessage(fileData = null) {
                 if(!State.activeContact) return;
+                
                 const input = document.getElementById('msg-input');
                 const text = input.value.trim();
                 
@@ -851,7 +761,7 @@ const firebaseConfig = {
                 const chatId = this.getChatId(State.user.uid, State.activeContact.uid);
                 
                 const payload = {
-                    text: text,
+                    text: fileData ? (fileData.name || text) : text,
                     senderId: State.user.uid,
                     createdAt: serverTimestamp(),
                     type: fileData ? fileData.type : 'text',
@@ -859,22 +769,11 @@ const firebaseConfig = {
                 };
 
                 try {
-                    // 🔧 СОХРАНЯЕМ В ОЧЕРЕДЬ ПРИ ОФЛАЙНЕ
-                    if(!State.firebaseConnected) {
-                        this.messageQueue.push(payload);
-                        this.renderMessage({...payload, createdAt: new Date()});
-                        input.value = '';
-                        App.ui.toast("Offline: Message will be sent when online", "warning");
-                        return;
-                    }
-
                     await addDoc(collection(db, "chats", chatId, "messages"), payload);
-                    input.value = '';
+                    if(!fileData) input.value = '';
                 } catch (e) {
-                    console.error("Send error:", e);
-                    App.ui.toast("Failed to send. Retrying...", "error");
-                    // Помещаем в очередь для повторной отправки
-                    this.messageQueue.push(payload);
+                    console.error("Send message error:", e);
+                    App.ui.toast("Failed to send message", 'error');
                 }
             }
 
@@ -882,102 +781,73 @@ const firebaseConfig = {
                 const file = input.files[0];
                 if(!file) return;
                 
-                // Проверка размера файла (max 10MB)
-                if(file.size > 10 * 1024 * 1024) {
-                    App.ui.toast("File too large. Max 10MB.", "error");
+                if(file.size > 10 * 1024 * 1024) { // 10MB limit
+                    App.ui.toast("File too large (max 10MB)", 'error');
+                    input.value = '';
                     return;
                 }
 
+                App.ui.toast("Uploading...");
                 App.ui.setLoading(true);
-                App.ui.toast("Uploading... 0%");
-
+                
                 try {
-                    const isImage = file.type.startsWith('image/');
-                    const path = `chat/${State.user.uid}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
-                    const storageRef = ref(storage, path);
-                    
-                    // Отслеживание прогресса
-                    const uploadTask = uploadBytes(storageRef, file, {
-                        cacheControl: 'public, max-age=31536000'
-                    });
-
-                    uploadTask.on('state_changed', (snapshot) => {
-                        const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-                        App.ui.toast(`Uploading... ${progress}%`, 'info');
-                    });
-
-                    await uploadTask;
-                    const url = await getDownloadURL(storageRef);
-                    
-                    await this.sendMessage({ 
-                        url, 
-                        type: isImage ? 'image' : 'file' 
-                    });
-                    
-                    App.ui.toast("✅ File sent!", "success");
+                    const storageRef = ref(storage, `chat/${Date.now()}_${file.name}`);
+                    const snap = await uploadBytes(storageRef, file);
+                    const url = await getDownloadURL(snap.ref);
+                    const type = file.type.startsWith('image/') ? 'image' : 'file';
+                    await this.sendMessage({ url, type, name: file.name });
+                    App.ui.toast("File uploaded!", 'success');
                 } catch(e) {
                     console.error("Upload error:", e);
-                    App.ui.toast("Upload failed. Check connection.", "error");
+                    App.ui.toast("Upload failed", 'error');
                 } finally {
                     App.ui.setLoading(false);
                     input.value = '';
                 }
             }
-
-            // 🔧 ОТПРАВКА ОЧЕРЕДИ СООБЩЕНИЙ ПРИ ВОЗВРАТЕ ОНЛАЙН
-            async flushMessageQueue() {
-                if(this.messageQueue.length === 0) return;
-                
-                App.ui.toast(`Sending ${this.messageQueue.length} pending messages...`, 'info');
-                
-                for(const msg of this.messageQueue) {
-                    try {
-                        const chatId = this.getChatId(State.user.uid, State.activeContact.uid);
-                        await addDoc(collection(db, "chats", chatId, "messages"), msg);
-                    } catch(e) {
-                        console.error("Failed to send queued message:", e);
-                        App.ui.toast("Some messages failed to send", 'error');
-                        return;
-                    }
-                }
-                
-                this.messageQueue = [];
-                App.ui.toast("All pending messages sent!", 'success');
-            }
         }
 
+        // --- VIDEO CALL SERVICE (PeerJS + Web Audio API) ---
         class CallService {
             constructor() {
                 this.audioCtx = null;
                 this.oscillator = null;
                 this.ringInterval = null;
+                this.reconnectionAttempts = 0;
+                this.maxReconnectionAttempts = 3;
             }
 
             init() {
-                // 🔧 ГЕНЕРАЦИЯ БЕЗОПАСНОГО PEER ID
-                const peerId = `fc_${State.user.uid}`;
+                // Create safe Peer ID
+                const safeId = this.generatePeerId(State.user.nickname, State.user.uid);
                 
-                console.log("Initializing PeerJS with ID:", peerId);
-
-                this.peer = new Peer(peerId, {
+                // Initialize PeerJS with improved config
+                this.peer = new Peer(safeId, {
+                    host: '0.peerjs.com',
+                    port: 443,
+                    secure: true,
+                    debug: 2,
                     config: {
                         iceServers: [
                             { urls: 'stun:stun.l.google.com:19302' },
-                            { urls: 'stun:stun1.l.google.com:19302' },
-                            { urls: 'stun:stun2.google.com:19302' },
-                            // Бесплатные TURN серверы для России
-                            { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-                            { urls: 'turn:freeturn.net:3478', username: 'free', credential: 'free' }
-                        ],
-                        iceCandidatePoolSize: 10,
-                        iceTransportPolicy: 'all'
-                    },
-                    debug: 1 // Минимальный debug
+                            { urls: 'stun:stun1.l.google.com:19302' }
+                        ]
+                    }
                 });
 
+                this.setupPeerEvents();
+            }
+
+            generatePeerId(nickname, uid) {
+                // Create URL-safe unique ID
+                return `${nickname.replace(/[^a-zA-Z0-9]/g, '')}_${uid.substring(0, 8)}`;
+            }
+
+            setupPeerEvents() {
                 this.peer.on('open', (id) => {
-                    console.log('✅ Peer connected with ID:', id);
-                    App.ui.toast("✅ Ready for calls", "success");
+                    console.log('✅ Peer connected:', id);
+                    App.ui.toast("Messenger ready", 'success');
+                    this.reconnectionAttempts = 0;
                 });
 
                 this.peer.on('call', (call) => {
@@ -986,69 +856,107 @@ const firebaseConfig = {
                 });
 
                 this.peer.on('error', (err) => {
-                    console.error('❌ PeerJS Error:', err);
-                    App.ui.toast(`Connection Error: ${err.type}`, 'error');
-                    this.endCall();
+                    console.error("❌ PeerJS Error:", err);
+                    this.handlePeerError(err);
                 });
 
                 this.peer.on('disconnected', () => {
-                    console.warn("⚠️ Peer disconnected, reconnecting...");
-                    App.ui.toast("Connection lost. Reconnecting...", "warning");
-                    setTimeout(() => this.peer.reconnect(), 3000);
+                    console.warn("⚠️ Peer disconnected");
+                    App.ui.toast("Connection lost. Reconnecting...", 'warning');
+                    this.attemptReconnection();
                 });
             }
 
+            handlePeerError(err) {
+                let errorMsg = "Connection error";
+                
+                switch(err.type) {
+                    case 'unavailable-id':
+                        errorMsg = "ID already in use. Please reload.";
+                        break;
+                    case 'network':
+                        errorMsg = "Network error. Check your connection.";
+                        break;
+                    case 'server-error':
+                        errorMsg = "Server error. Please try again.";
+                        break;
+                    case 'browser-incompatible':
+                        errorMsg = "Browser not supported. Use Chrome/Firefox.";
+                        break;
+                }
+                
+                App.ui.toast(errorMsg, 'error');
+                this.endCall();
+            }
+
+            attemptReconnection() {
+                if(this.reconnectionAttempts < this.maxReconnectionAttempts) {
+                    this.reconnectionAttempts++;
+                    setTimeout(() => {
+                        console.log(`🔄 Reconnection attempt ${this.reconnectionAttempts}`);
+                        this.peer.reconnect();
+                    }, 2000 * this.reconnectionAttempts);
+                } else {
+                    App.ui.toast("Failed to reconnect. Please refresh.", 'error');
+                }
+            }
+
+            // Generate ringtone using Web Audio API
             playRing(type = 'incoming') {
-                try {
-                    if (!this.audioCtx) {
-                        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    }
-                    this.stopRing();
+                if (!this.audioCtx) {
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                this.stopRing();
 
-                    this.oscillator = this.audioCtx.createOscillator();
-                    const gainNode = this.audioCtx.createGain();
+                this.oscillator = this.audioCtx.createOscillator();
+                const gainNode = this.audioCtx.createGain();
 
-                    this.oscillator.connect(gainNode);
-                    gainNode.connect(this.audioCtx.destination);
+                this.oscillator.connect(gainNode);
+                gainNode.connect(this.audioCtx.destination);
 
-                    if (type === 'incoming') {
-                        this.oscillator.type = 'sine';
-                        this.oscillator.frequency.setValueAtTime(800, this.audioCtx.currentTime);
-                        gainNode.gain.setValueAtTime(0, this.audioCtx.currentTime);
-                        
-                        const now = this.audioCtx.currentTime;
-                        gainNode.gain.linearRampToValueAtTime(0.5, now + 0.1);
-                        gainNode.gain.linearRampToValueAtTime(0, now + 2);
-                        
-                        this.oscillator.start(now);
-                        this.oscillator.stop(now + 2);
-                        
-                        this.ringInterval = setInterval(() => {
-                             const osc = this.audioCtx.createOscillator();
-                             const gn = this.audioCtx.createGain();
-                             osc.connect(gn);
-                             gn.connect(this.audioCtx.destination);
-                             osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
-                             gn.gain.setValueAtTime(0, this.audioCtx.currentTime);
-                             gn.gain.linearRampToValueAtTime(0.5, this.audioCtx.currentTime + 0.1);
-                             gn.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 2);
-                             osc.start();
-                             osc.stop(this.audioCtx.currentTime + 2);
-                        }, 3000);
+                if (type === 'incoming') {
+                    // Classic ring pattern
+                    this.oscillator.type = 'sine';
+                    this.oscillator.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                    
+                    const now = this.audioCtx.currentTime;
+                    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.1);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 1.5);
+                    
+                    this.oscillator.start(now);
+                    this.oscillator.stop(now + 1.5);
+                    
+                    // Loop every 3 seconds
+                    this.ringInterval = setInterval(() => {
+                         const osc = this.audioCtx.createOscillator();
+                         const gn = this.audioCtx.createGain();
+                         osc.connect(gn);
+                         gn.connect(this.audioCtx.destination);
+                         osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+                         gn.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                         gn.gain.linearRampToValueAtTime(0.3, this.audioCtx.currentTime + 0.1);
+                         gn.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 1.5);
+                         osc.start();
+                         osc.stop(this.audioCtx.currentTime + 1.5);
+                    }, 3000);
 
-                    } else if (type === 'dialing') {
-                        this.oscillator.frequency.setValueAtTime(400, this.audioCtx.currentTime);
-                        gainNode.gain.value = 0.1;
-                        this.oscillator.start();
-                    }
-                } catch(e) {
-                    console.log("Audio error:", e);
+                } else if (type === 'dialing') {
+                    this.oscillator.type = 'sine';
+                    this.oscillator.frequency.setValueAtTime(400, this.audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0.1, this.audioCtx.currentTime);
+                    this.oscillator.start();
                 }
             }
 
             stopRing() {
                 if (this.oscillator) {
-                    try { this.oscillator.stop(); } catch(e){}
+                    try { 
+                        this.oscillator.stop(); 
+                    } catch(e) {
+                        console.warn("Stop oscillator error:", e);
+                    }
                     this.oscillator = null;
                 }
                 if (this.ringInterval) {
@@ -1059,59 +967,39 @@ const firebaseConfig = {
 
             async getStream() {
                 try {
-                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                    const dataSaver = localStorage.getItem('data-saver') === 'true';
-                    
+                    // Request both audio and video
                     const constraints = {
-                        video: isMobile || dataSaver ? {
-                            width: { ideal: 640, max: 1280 },
-                            height: { ideal: 480, max: 720 },
-                            facingMode: 'user',
-                            frameRate: { ideal: 24, max: 30 }
-                        } : {
-                            width: { ideal: 1280, max: 1920 },
-                            height: { ideal: 720, max: 1080 },
-                            facingMode: 'user',
-                            frameRate: { ideal: 30, max: 60 }
+                        video: {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            facingMode: 'user'
                         },
                         audio: {
                             echoCancellation: true,
                             noiseSuppression: true,
-                            autoGainControl: true,
-                            sampleRate: 48000
+                            autoGainControl: true
                         }
                     };
 
-                    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                        throw new Error("Camera/microphone not supported");
-                    }
-
                     const stream = await navigator.mediaDevices.getUserMedia(constraints);
                     State.localStream = stream;
+                    document.getElementById('local-video').srcObject = stream;
                     
-                    stream.getTracks().forEach(track => {
-                        track.onended = () => {
-                            console.log("Track ended:", track.kind);
-                            if(State.currentCall) {
-                                App.ui.toast(`${track.kind} device disconnected`, "warning");
-                                if (track.kind === 'video') {
-                                    this.replaceVideoTrack();
-                                }
-                            }
-                        };
-                    });
-
-                    const localVideo = document.getElementById('local-video');
-                    localVideo.srcObject = stream;
+                    // Update UI to show controls are active
+                    this.updateCallControls();
                     
                     return stream;
                 } catch (e) {
-                    console.error("Stream error:", e);
+                    console.error("Camera access error:", e);
+                    
                     let errorMsg = "Camera access denied";
-                    if(e.name === 'NotFoundError') errorMsg = "No camera/microphone found";
-                    if(e.name === 'NotAllowedError') errorMsg = "Please allow camera access in browser settings";
-                    if(e.name === 'OverconstrainedError') errorMsg = "Camera not supported";
-                    if(e.name === 'NotReadableError') errorMsg = "Camera is busy";
+                    if(e.name === 'NotAllowedError') {
+                        errorMsg = "Camera permission denied. Allow access in browser settings.";
+                    } else if(e.name === 'NotFoundError') {
+                        errorMsg = "No camera found. Connect a camera.";
+                    } else if(e.name === 'NotReadableError') {
+                        errorMsg = "Camera is already in use by another application.";
+                    }
                     
                     App.ui.toast(errorMsg, 'error');
                     throw e;
@@ -1120,339 +1008,263 @@ const firebaseConfig = {
 
             handleIncomingCall(call) {
                 if (State.currentCall) {
-                    console.log("Busy, rejecting call");
-                    call.close(); 
+                    // Busy - auto reject
+                    console.log("Busy - rejecting incoming call");
+                    call.close();
+                    App.ui.toast("You missed a call (busy)", 'warning');
                     return;
                 }
                 
-                State.tempCall = call;
+                this.tempCall = call;
                 
-                const callerUid = call.peer.replace('fc_', '');
-                const callerContact = State.contactsMap[callerUid];
-                const callerName = callerContact ? callerContact.nickname : 'Unknown';
+                // Parse caller name from peer ID
+                const callerRaw = call.peer.split('_')[0];
+                document.getElementById('caller-name').innerText = callerRaw || 'Unknown';
+                document.getElementById('caller-avatar').innerText = (callerRaw || '?')[0].toUpperCase();
                 
-                document.getElementById('caller-name').innerText = callerName;
-                document.getElementById('caller-avatar').innerText = callerName[0]?.toUpperCase() || '?';
-                
+                // Show incoming modal
                 document.getElementById('incoming-modal').classList.add('show');
                 this.playRing('incoming');
                 
-                // Автоотклонение через 30 секунд
-                State.incomingTimeout = setTimeout(() => {
-                    if(State.tempCall) {
+                // Auto reject after 30 seconds (timeout)
+                setTimeout(() => {
+                    if(this.tempCall && !State.currentCall) {
                         this.rejectCall();
-                        App.ui.toast("Call missed", "warning");
+                        App.ui.toast("Call timed out", 'warning');
                     }
                 }, 30000);
             }
 
             async acceptCall() {
-                clearTimeout(State.incomingTimeout);
+                if(!this.tempCall) return;
+                
                 this.stopRing();
                 document.getElementById('incoming-modal').classList.remove('show');
                 
                 try {
                     const stream = await this.getStream();
-                    State.tempCall.answer(stream);
-                    this.setupCallEvents(State.tempCall);
-                    document.getElementById('call-overlay').classList.add('active');
-                    document.getElementById('call-status-text').innerText = "Connecting...";
-                    document.getElementById('call-status-text').style.display = 'block';
-                    
-                    App.ui.toast("✅ Call accepted", "success");
-                    State.tempCall = null;
-                    
+                    this.tempCall.answer(stream);
+                    this.setupCallEvents(this.tempCall);
+                    App.ui.toast("Connecting...", 'info');
                 } catch (e) {
                     console.error("Accept call error:", e);
                     this.rejectCall();
-                    App.ui.toast("Failed to accept call", "error");
+                    App.ui.toast("Failed to accept call", 'error');
                 }
             }
 
             rejectCall() {
-                clearTimeout(State.incomingTimeout);
                 this.stopRing();
                 document.getElementById('incoming-modal').classList.remove('show');
-                if(State.tempCall) {
-                    State.tempCall.close();
-                    State.tempCall = null;
+                if(this.tempCall) {
+                    this.tempCall.close();
+                    this.tempCall = null;
                 }
             }
 
             async startCall() {
                 if(!State.activeContact) {
-                    App.ui.toast("Select a contact first", "error");
+                    App.ui.toast("Select a contact first", 'error');
                     return;
                 }
                 
-                const targetPeerId = `fc_${State.activeContact.uid}`;
-                console.log("Calling peer:", targetPeerId);
+                if(State.currentCall) {
+                    App.ui.toast("Already in a call", 'warning');
+                    return;
+                }
+
+                // Generate target Peer ID
+                const targetPeerId = this.generatePeerId(State.activeContact.nickname, State.activeContact.uid);
+                console.log("🎯 Calling:", targetPeerId);
 
                 try {
+                    App.ui.toast("Initializing call...", 'info');
                     const stream = await this.getStream();
+                    
                     document.getElementById('call-overlay').classList.add('active');
-                    document.getElementById('call-status-text').style.display = 'block';
                     document.getElementById('call-status-text').innerText = "Dialing...";
+                    document.getElementById('call-status-text').style.display = 'block';
                     this.playRing('dialing');
 
-                    const call = this.peer.call(targetPeerId, stream, {
-                        metadata: {
-                            callerName: State.user.nickname,
-                            timestamp: Date.now()
-                        }
-                    });
-                    
-                    State.callTimeout = setTimeout(() => {
-                        if(!State.currentCall) {
-                            App.ui.toast("No answer", "warning");
-                            this.endCall();
-                        }
-                    }, 30000);
-
+                    const call = this.peer.call(targetPeerId, stream);
                     this.setupCallEvents(call);
 
                 } catch(e) {
                     console.error("Start call error:", e);
-                    App.ui.toast("Failed to start call", "error");
+                    App.ui.toast("Failed to start call", 'error');
                     this.endCall();
                 }
             }
 
             setupCallEvents(call) {
                 State.currentCall = call;
-                State.callStartTime = Date.now();
+                this.reconnectionAttempts = 0;
                 
-                State.callDurationInterval = setInterval(() => {
-                    App.ui.updateCallDuration();
-                }, 1000);
-
                 call.on('stream', (remoteStream) => {
-                    clearTimeout(State.callTimeout);
+                    console.log("✅ Call connected!");
                     this.stopRing();
                     document.getElementById('call-status-text').innerText = "Connected";
-                    setTimeout(() => {
-                        document.getElementById('call-status-text').style.display = 'none';
-                    }, 2000);
+                    document.getElementById('call-status-text').style.display = 'none';
                     
-                    const remoteVideo = document.getElementById('remote-video');
-                    remoteVideo.srcObject = remoteStream;
-                    
-                    remoteStream.getTracks().forEach(track => {
-                        track.onended = () => {
-                            console.log("Remote track ended");
-                            App.ui.toast("Remote user disconnected", "warning");
-                            this.endCall();
-                        };
-                    });
+                    document.getElementById('remote-video').srcObject = remoteStream;
+                    App.ui.toast("Call connected", 'success');
                 });
 
                 call.on('close', () => {
-                    console.log("Call closed by remote");
+                    console.log("📞 Call closed");
                     this.endCall();
+                    App.ui.toast("Call ended", 'info');
                 });
 
                 call.on('error', (err) => {
-                    console.error("Call error:", err);
-                    App.ui.toast("Call error occurred", "error");
+                    console.error("📞 Call error:", err);
+                    App.ui.toast("Call error: " + err.message, 'error');
                     this.endCall();
                 });
 
-                if(call.peerConnection) {
-                    call.peerConnection.oniceconnectionstatechange = () => {
-                        const iceState = call.peerConnection.iceConnectionState;
-                        console.log("ICE state:", iceState);
-                        
-                        if(iceState === 'connected') {
-                            App.ui.toast("✅ Connected", "success");
-                        } else if(iceState === 'failed') {
-                            App.ui.toast("Connection failed. Try again.", "error");
+                // Connection state monitoring
+                call.peerConnection.onconnectionstatechange = (event) => {
+                    console.log("Connection state:", call.peerConnection.connectionState);
+                    switch(call.peerConnection.connectionState) {
+                        case 'disconnected':
+                            App.ui.toast("Connection lost...", 'warning');
+                            break;
+                        case 'failed':
+                            App.ui.toast("Connection failed", 'error');
                             this.endCall();
-                        } else if(iceState === 'disconnected') {
-                            App.ui.toast("Connection unstable", "warning");
-                            setTimeout(() => {
-                                if (call.peerConnection.iceConnectionState === 'disconnected') {
-                                    this.endCall();
-                                }
-                            }, 5000);
-                        }
-                    };
-
-                    call.peerConnection.onconnectionstatechange = () => {
-                        if(call.peerConnection.connectionState === 'failed') {
-                            App.ui.toast("Connection failed", "error");
-                            this.endCall();
-                        }
-                    };
-                }
+                            break;
+                    }
+                };
             }
 
             endCall() {
-                clearTimeout(State.callTimeout);
-                clearTimeout(State.incomingTimeout);
-                clearInterval(State.callDurationInterval);
+                console.log("🛑 Ending call...");
                 this.stopRing();
                 
                 if (State.currentCall) {
-                    try { State.currentCall.close(); } catch(e) {}
+                    State.currentCall.close();
                     State.currentCall = null;
-                }
-                
-                if (State.tempCall) {
-                    try { State.tempCall.close(); } catch(e) {}
-                    State.tempCall = null;
                 }
                 
                 if (State.localStream) {
                     State.localStream.getTracks().forEach(t => {
-                        try { t.stop(); } catch(e) {}
+                        try {
+                            t.stop();
+                        } catch(e) {
+                            console.warn("Track stop error:", e);
+                        }
                     });
+                    State.localStream = null;
                 }
                 
-                State.localStream = null;
-                State.callStartTime = null;
-                
+                // Reset UI
                 document.getElementById('call-overlay').classList.remove('active');
                 document.getElementById('remote-video').srcObject = null;
                 document.getElementById('local-video').srcObject = null;
                 document.getElementById('call-status-text').style.display = 'block';
-                document.getElementById('call-duration').style.display = 'none';
+                document.getElementById('call-status-text').innerText = "Preparing...";
                 
-                const muteBtn = document.getElementById('btn-mute');
-                const camBtn = document.getElementById('btn-cam');
-                if(muteBtn) {
-                    muteBtn.style.background = 'rgba(255,255,255,0.2)';
-                    muteBtn.innerHTML = '<i class="fas fa-microphone"></i>';
-                }
-                if(camBtn) {
-                    camBtn.style.background = 'rgba(255,255,255,0.2)';
-                    camBtn.innerHTML = '<i class="fas fa-video"></i>';
-                }
+                // Reset buttons
+                this.updateCallControls();
+                
+                this.tempCall = null;
             }
 
             toggleAudio() {
                 if(!State.localStream) return;
                 const track = State.localStream.getAudioTracks()[0];
-                if(!track) return;
-                
-                track.enabled = !track.enabled;
-                const btn = document.getElementById('btn-mute');
-                btn.style.background = track.enabled ? 'rgba(255,255,255,0.2)' : 'var(--danger)';
-                btn.innerHTML = track.enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+                if(track) {
+                    track.enabled = !track.enabled;
+                    this.updateCallControls();
+                }
             }
 
             toggleVideo() {
                 if(!State.localStream) return;
                 const track = State.localStream.getVideoTracks()[0];
-                if(!track) return;
-                
-                track.enabled = !track.enabled;
-                const btn = document.getElementById('btn-cam');
-                btn.style.background = track.enabled ? 'rgba(255,255,255,0.2)' : 'var(--danger)';
-                btn.innerHTML = track.enabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
-            }
-
-            async flipCamera() {
-                if(!State.localStream) return;
-                
-                const currentTrack = State.localStream.getVideoTracks()[0];
-                const currentSettings = currentTrack?.getSettings() || {};
-                const currentMode = currentSettings.facingMode || 'user';
-                const newMode = currentMode === 'user' ? 'environment' : 'user';
-                
-                try {
-                    const newStream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: newMode },
-                        audio: false
-                    });
-                    
-                    const videoTrack = newStream.getVideoTracks()[0];
-                    
-                    if(State.localStream) {
-                        const oldVideoTrack = State.localStream.getVideoTracks()[0];
-                        if(oldVideoTrack) {
-                            State.localStream.removeTrack(oldVideoTrack);
-                            oldVideoTrack.stop();
-                        }
-                        State.localStream.addTrack(videoTrack);
-                    }
-                    
-                    if(State.currentCall && State.currentCall.peerConnection) {
-                        const sender = State.currentCall.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-                        if(sender) {
-                            await sender.replaceTrack(videoTrack);
-                        }
-                    }
-                    
-                    const localVideo = document.getElementById('local-video');
-                    localVideo.srcObject = State.localStream;
-                    
-                    App.ui.toast("Camera flipped", "success");
-                    
-                } catch(e) {
-                    console.error("Camera switch error:", e);
-                    App.ui.toast("Cannot switch camera", "error");
+                if(track) {
+                    track.enabled = !track.enabled;
+                    this.updateCallControls();
                 }
             }
 
-            async replaceVideoTrack() {
+            updateCallControls() {
+                if(!State.localStream) return;
+                
+                const audioTrack = State.localStream.getAudioTracks()[0];
+                const videoTrack = State.localStream.getVideoTracks()[0];
+                
+                const muteBtn = document.getElementById('btn-mute');
+                const camBtn = document.getElementById('btn-cam');
+                
+                if(audioTrack) {
+                    muteBtn.style.background = audioTrack.enabled ? 'rgba(255,255,255,0.2)' : 'var(--danger)';
+                    muteBtn.innerHTML = audioTrack.enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+                }
+                
+                if(videoTrack) {
+                    camBtn.style.background = videoTrack.enabled ? 'rgba(255,255,255,0.2)' : 'var(--danger)';
+                    camBtn.innerHTML = videoTrack.enabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+                }
+            }
+
+            async flipCamera() {
+                if(!State.localStream || !State.currentCall) {
+                    App.ui.toast("Must be in a call to switch camera", 'warning');
+                    return;
+                }
+                
+                const videoTrack = State.localStream.getVideoTracks()[0];
+                if(!videoTrack) return;
+                
+                const currentSettings = videoTrack.getSettings();
+                const isFront = currentSettings.facingMode === 'user';
+                const newMode = isFront ? 'environment' : 'user';
+                
                 try {
+                    App.ui.toast("Switching camera...", 'info');
                     const newStream = await navigator.mediaDevices.getUserMedia({
-                        video: true,
-                        audio: false
+                        video: { facingMode: newMode },
+                        audio: true
                     });
                     
-                    const videoTrack = newStream.getVideoTracks()[0];
+                    // Replace video track
+                    const newVideoTrack = newStream.getVideoTracks()[0];
+                    const sender = State.currentCall.peerConnection.getSenders().find(s => 
+                        s.track && s.track.kind === 'video'
+                    );
                     
-                    if(State.localStream) {
-                        const oldVideoTrack = State.localStream.getVideoTracks()[0];
-                        if(oldVideoTrack) {
-                            State.localStream.removeTrack(oldVideoTrack);
-                            oldVideoTrack.stop();
-                        }
-                        State.localStream.addTrack(videoTrack);
+                    if(sender) {
+                        await sender.replaceTrack(newVideoTrack);
                     }
                     
-                    if(State.currentCall && State.currentCall.peerConnection) {
-                        const sender = State.currentCall.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
-                        if(sender) {
-                            await sender.replaceTrack(videoTrack);
-                        }
-                    }
+                    // Update local stream
+                    State.localStream.getVideoTracks().forEach(t => t.stop());
+                    State.localStream = newStream;
+                    document.getElementById('local-video').srcObject = newStream;
                     
-                    const localVideo = document.getElementById('local-video');
-                    localVideo.srcObject = State.localStream;
-                    
+                    App.ui.toast("Camera switched", 'success');
                 } catch(e) {
-                    console.error("Replace video track error:", e);
+                    console.error("Flip camera error:", e);
+                    App.ui.toast("Cannot switch camera", 'error');
                 }
             }
         }
 
-        // Главное приложение
+        // --- MAIN APP INITIALIZATION ---
         const App = {
             auth: new AuthService(),
             chat: new ChatService(),
             call: new CallService(),
             ui: new UIManager(),
-            contacts: null
+            contacts: null // Will reference chat service
         };
+
+        // Link contacts to chat service
         App.contacts = App.chat;
 
+        // Attach to window for HTML events
         window.App = App;
-
-        // 🔧 СЛЕЖЕНИЕ ЗА СОСТОЯНИЕМ СОЕДИНЕНИЯ
-        onSnapshot(doc(db, ".info/connected"), (snap) => {
-            State.firebaseConnected = snap.data().connected;
-            const status = document.getElementById('connection-status');
-            if(State.firebaseConnected) {
-                status.textContent = 'Online';
-                status.className = 'online';
-                App.chat.flushMessageQueue();
-            } else {
-                status.textContent = 'Offline';
-                status.className = 'offline';
-            }
-        });
 
         // Firebase Auth Listener
         onAuthStateChanged(auth, async (user) => {
@@ -1466,61 +1278,31 @@ const firebaseConfig = {
                         App.call.init();
                         App.ui.initTheme();
                     } else {
-                        // Если документ не найден, создаем его
-                        await setDoc(doc(db, "users", user.uid), {
-                            uid: user.uid,
-                            nickname: user.displayName || "User",
-                            contacts: [],
-                            createdAt: serverTimestamp(),
-                            email: user.email
-                        });
-                        window.location.reload();
+                        console.error("User document not found");
+                        App.ui.toast("User data not found", 'error');
+                        await signOut(auth);
                     }
                 } catch (e) {
                     console.error("Auth state error:", e);
-                    App.ui.toast("Error loading user data", "error");
+                    App.ui.toast("Error loading user data", 'error');
                 }
             } else {
                 State.user = null;
                 App.ui.showAuth();
             }
-        }, (error) => {
-            console.error("Auth listener error:", error);
-            App.ui.toast("Authentication error. Try refreshing.", "error");
         });
 
-        // 🔧 ОБРАБОТКА ОШИБОК ГЛОБАЛЬНО
-        window.addEventListener('error', (e) => {
-            console.error("Global error:", e.error);
-            App.ui.toast("An error occurred. Please refresh.", "error");
-        });
-
-        window.addEventListener('unhandledrejection', (e) => {
-            console.error("Unhandled promise:", e.reason);
-            App.ui.toast("Network error. Check connection.", "warning");
-        });
-
-        // 🔧 ПРОВЕРКА ПОДДЕРЖКИ WebRTC
-        window.addEventListener('load', () => {
-            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                App.ui.toast("⚠️ Your browser doesn't support video calls", "warning");
-                document.querySelector('.fa-video').style.display = 'none';
-            }
-        });
-
-        // 🔧 ВОССТАНОВЛЕНИЕ ПОСЛЕ ПОТЕРИ ФОКУСА
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && State.user && !State.firebaseConnected) {
-                checkFirebaseConnection();
-            }
-        });
-
-        // 🔧 ОЧИСТКА ПРИ ЗАКРЫТИИ ВКЛАДКИ
+        // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
-            if(State.currentCall) {
-                App.call.endCall();
-            }
+            if(State.currentCall) App.call.endCall();
+            if(State.peer) State.peer.destroy();
         });
+
+        // Check for HTTPS (required for camera/microphone)
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            App.ui.toast("⚠️ Video calls require HTTPS connection!", 'error');
+        }
+
     </script>
 </body>
 </html>
