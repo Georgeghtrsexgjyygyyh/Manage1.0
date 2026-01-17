@@ -2,598 +2,728 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Peer Messenger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Family Connect | Secure Messenger</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* --- CSS VARIABLES & THEME --- */
+        :root {
+            --primary: #008069;
+            --primary-dark: #005c4b;
+            --bg-app: #dcf8c6; /* WhatsApp-like background */
+            --bg-panel: #ffffff;
+            --text-main: #111b21;
+            --text-secondary: #667781;
+            --incoming-msg: #ffffff;
+            --outgoing-msg: #d9fdd3;
+            --border: #e9edef;
+            --error: #ea0038;
+            --shadow: 0 4px 12px rgba(0,0,0,0.15);
+            --font-size: 16px;
+            --btn-size: 48px;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            overflow: hidden;
+        [data-theme="dark"] {
+            --primary: #00a884;
+            --primary-dark: #02906f;
+            --bg-app: #0b141a;
+            --bg-panel: #202c33;
+            --text-main: #e9edef;
+            --text-secondary: #8696a0;
+            --incoming-msg: #202c33;
+            --outgoing-msg: #005c4b;
+            --border: #222e35;
         }
 
-        .container {
-            max-width: 600px;
-            height: 100vh;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        body { background: var(--bg-app); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+
+        /* --- UTILITIES --- */
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .center { align-items: center; justify-content: center; }
+        .scroll-y { overflow-y: auto; scrollbar-width: thin; }
+
+        /* --- AUTH SCREEN --- */
+        #auth-container {
+            width: 100%; max-width: 400px; background: var(--bg-panel); 
+            padding: 2rem; border-radius: 12px; box-shadow: var(--shadow);
+            text-align: center; margin: 1rem;
+        }
+        input {
+            width: 100%; padding: 14px; margin: 8px 0; border: 1px solid var(--border);
+            border-radius: 8px; font-size: 1.1rem; background: var(--bg-panel); color: var(--text-main);
+        }
+        button {
+            width: 100%; padding: 14px; background: var(--primary); color: white; border: none;
+            border-radius: 8px; font-size: 1.1rem; cursor: pointer; font-weight: bold; margin-top: 10px;
+            min-height: var(--btn-size); transition: opacity 0.2s;
+        }
+        button:active { opacity: 0.8; }
+        .link-btn { background: none; color: var(--primary); margin-top: 15px; font-size: 0.9rem; }
+
+        /* --- MAIN APP LAYOUT --- */
+        #app-container {
+            display: flex; width: 100%; height: 100%; max-width: 1600px;
+            background: var(--bg-panel); box-shadow: var(--shadow); position: relative;
         }
 
+        /* SIDEBAR (Contacts) */
+        aside {
+            width: 350px; border-right: 1px solid var(--border); display: flex; flex-direction: column;
+            background: var(--bg-panel); transition: transform 0.3s ease; z-index: 10;
+        }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 16px; background: var(--bg-panel); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
-            background: #f0f0f0;
-            border-bottom: 1px solid #ddd;
+        .user-avatar {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white;
+            display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;
         }
-
-        .status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .search-bar { padding: 10px; border-bottom: 1px solid var(--border); }
+        .contact-list { flex: 1; overflow-y: auto; }
+        .contact-item {
+            display: flex; align-items: center; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border);
         }
+        .contact-item:hover { background: rgba(0,0,0,0.03); }
+        .contact-info { margin-left: 12px; }
+        .contact-name { font-weight: 600; font-size: 1.1rem; }
+        .last-msg { font-size: 0.9rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
 
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ff4757;
+        /* CHAT AREA */
+        main { flex: 1; display: flex; flex-direction: column; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); position: relative; }
+        [data-theme="dark"] main { opacity: 0.9; }
+        
+        .chat-header {
+            padding: 10px 16px; background: var(--bg-panel); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
         }
-
-        .status-dot.connected {
-            background: #2ed573;
-        }
-
-        .connection-info {
-            padding: 15px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .connection-info input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 14px;
-        }
-
-        .my-id {
-            text-align: center;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #e5e5e5;
-        }
-
+        .chat-messages { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+        
         .message {
-            display: flex;
-            margin-bottom: 15px;
-            animation: slideIn 0.3s ease;
+            max-width: 65%; padding: 8px 12px; border-radius: 8px; position: relative; font-size: 1rem; line-height: 1.4; word-wrap: break-word;
         }
+        .msg-in { align-self: flex-start; background: var(--incoming-msg); border-top-left-radius: 0; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
+        .msg-out { align-self: flex-end; background: var(--outgoing-msg); border-top-right-radius: 0; box-shadow: 0 1px 0.5px rgba(0,0,0,0.13); }
+        .msg-meta { font-size: 0.7rem; color: var(--text-secondary); text-align: right; margin-top: 4px; display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
+        .msg-img { max-width: 100%; border-radius: 6px; margin-bottom: 4px; cursor: pointer; }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .chat-input {
+            padding: 10px 16px; background: var(--bg-panel); display: flex; align-items: center; gap: 10px; min-height: 60px;
         }
-
-        .message.sent {
-            justify-content: flex-end;
+        .icon-btn { 
+            background: none; border: none; font-size: 1.4rem; color: var(--text-secondary); 
+            cursor: pointer; padding: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
         }
+        .icon-btn:hover { color: var(--primary); }
 
-        .message-bubble {
-            max-width: 70%;
-            padding: 10px 15px;
-            border-radius: 20px;
-            word-wrap: break-word;
+        /* --- VIDEO CALL OVERLAY --- */
+        #video-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #000; z-index: 1000; display: flex; flex-direction: column;
         }
-
-        .message.received .message-bubble {
-            background: white;
-            color: #333;
+        #remote-video { width: 100%; height: 100%; object-fit: cover; }
+        #local-video {
+            position: absolute; bottom: 20px; right: 20px; width: 120px; height: 160px;
+            background: #333; border: 2px solid white; border-radius: 8px; object-fit: cover; z-index: 1001;
+            transition: all 0.3s;
         }
-
-        .message.sent .message-bubble {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .message-time {
-            font-size: 11px;
-            color: #999;
-            margin-top: 5px;
-            text-align: right;
-        }
-
-        .file-attachment {
-            display: block;
-            color: inherit;
-            text-decoration: none;
-            margin-top: 5px;
-            padding: 5px 10px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            font-size: 14px;
-        }
-
-        .input-container {
-            display: flex;
-            padding: 15px;
-            background: white;
-            border-top: 1px solid #ddd;
-            gap: 10px;
-        }
-
-        .input-container input {
-            flex: 1;
-            padding: 12px 20px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 16px;
-        }
-
-        .input-container button {
-            width: 45px;
-            height: 45px;
-            border: none;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
-        }
-
-        .input-container button:hover {
-            transform: scale(1.05);
-        }
-
-        .input-container button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .call-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-        }
-
-        .call-modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-
-        .video-container {
-            width: 90%;
-            max-width: 800px;
-            height: 60%;
-            background: #000;
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .video-container video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
         .call-controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 20px;
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 20px; z-index: 1002;
         }
-
-        .call-controls button {
-            width: 60px;
-            height: 60px;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 24px;
-            transition: transform 0.2s;
+        .call-btn {
+            width: 60px; height: 60px; border-radius: 50%; border: none; color: white; font-size: 1.5rem;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer;
         }
-
-        .call-controls button:hover {
-            transform: scale(1.1);
+        .btn-hangup { background: #ea0038; }
+        .btn-mute { background: #333; }
+        .device-settings {
+            position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 8px; color: white; z-index: 1002;
         }
+        select { background: #333; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px; margin-bottom: 5px; width: 100%; }
 
-        .hangup {
-            background: #ff4757;
-            color: white;
+        /* --- RESPONSIVE DESIGN --- */
+        @media (max-width: 768px) {
+            aside { width: 100%; height: 100%; position: absolute; }
+            main { width: 100%; height: 100%; position: absolute; transform: translateX(100%); transition: transform 0.3s ease; }
+            
+            body.chat-active aside { transform: translateX(-20%); }
+            body.chat-active main { transform: translateX(0); }
+            
+            #local-video { width: 90px; height: 120px; bottom: 100px; right: 10px; }
+            .back-btn { display: block !important; }
         }
+        .back-btn { display: none; margin-right: 10px; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary); }
 
-        @media (max-width: 600px) {
-            .container {
-                max-width: 100%;
-            }
+        /* Toast Notification */
+        #toast {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: #333; color: #fff; padding: 10px 20px; border-radius: 20px;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 2000;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-comment-dots"></i> Peer Messenger</h1>
-        </div>
 
-        <div class="status-bar">
-            <div class="status">
-                <div class="status-dot" id="statusDot"></div>
-                <span id="statusText">Disconnected</span>
+    <div id="toast"></div>
+
+    <div id="auth-container">
+        <h2 style="color: var(--primary); margin-bottom: 10px;">Family Connect</h2>
+        <p id="auth-subtitle">Enter your nickname to start</p>
+        <div id="auth-error" style="color: var(--error); margin: 10px 0; font-size: 0.9rem;"></div>
+        
+        <input type="text" id="auth-nick" placeholder="Nickname (e.g., Grandma, Tom)" autocomplete="off">
+        <input type="password" id="auth-pass" placeholder="Password">
+        
+        <button id="btn-login" onclick="auth.login()">Login</button>
+        <button id="btn-register" class="hidden" onclick="auth.register()">Create Account</button>
+        
+        <div class="link-btn" id="toggle-auth" onclick="auth.toggleMode()">New here? Create Account</div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        
+        <aside id="sidebar">
+            <div class="header">
+                <div class="flex center" style="gap: 10px;">
+                    <div id="my-avatar" class="user-avatar">?</div>
+                    <span id="my-nick" style="font-weight: bold;"></span>
+                </div>
+                <div class="flex" style="gap: 10px;">
+                    <button class="icon-btn" onclick="ui.toggleTheme()"><i class="fas fa-moon"></i></button>
+                    <button class="icon-btn" onclick="auth.logout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
             </div>
-            <button id="callBtn" disabled><i class="fas fa-phone"></i></button>
-        </div>
+            
+            <div class="search-bar">
+                <div class="flex">
+                    <input type="text" id="search-input" placeholder="Find family by nickname..." style="margin: 0; border-radius: 8px 0 0 8px;">
+                    <button onclick="chat.searchUser()" style="width: auto; margin: 0; border-radius: 0 8px 8px 0; padding: 0 15px;">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
 
-        <div class="connection-info">
-            <div class="my-id">Your ID: <span id="myId">Generating...</span></div>
-            <input type="text" id="partnerId" placeholder="Enter partner ID to connect...">
-        </div>
+            <div id="contact-list" class="contact-list">
+                </div>
+        </aside>
 
-        <div class="chat-container" id="chatContainer"></div>
+        <main id="chat-area">
+            <div class="chat-header">
+                <div class="flex center">
+                    <div class="back-btn" onclick="ui.closeChat()"><i class="fas fa-arrow-left"></i></div>
+                    <div id="chat-avatar" class="user-avatar" style="margin-right: 10px;"></div>
+                    <div>
+                        <div id="chat-name" style="font-weight: bold;">Select a contact</div>
+                        <div id="chat-status" style="font-size: 0.8rem; color: var(--text-secondary);"></div>
+                    </div>
+                </div>
+                <div class="flex" id="chat-actions" style="opacity: 0; pointer-events: none;">
+                    <button class="icon-btn" onclick="videoCall.start()"><i class="fas fa-video"></i></button>
+                </div>
+            </div>
 
-        <div class="input-container">
-            <input type="text" id="messageInput" placeholder="Type a message..." disabled>
-            <input type="file" id="fileInput" style="display: none;" disabled>
-            <button id="attachBtn" disabled><i class="fas fa-paperclip"></i></button>
-            <button id="sendBtn" disabled><i class="fas fa-paper-plane"></i></button>
-        </div>
+            <div id="messages" class="chat-messages scroll-y">
+                <div class="center flex" style="height: 100%; opacity: 0.5; flex-direction: column;">
+                    <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 10px;"></i>
+                    <p>Select a family member to start chatting</p>
+                </div>
+            </div>
+
+            <div class="chat-input" id="input-area" style="display: none;">
+                <button class="icon-btn" onclick="document.getElementById('file-input').click()">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <input type="file" id="file-input" hidden onchange="chat.uploadFile(this)">
+                
+                <input type="text" id="msg-input" placeholder="Type a message..." style="margin: 0;" onkeydown="if(event.key === 'Enter') chat.send()">
+                
+                <button class="icon-btn" style="color: var(--primary);" onclick="chat.send()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </main>
     </div>
 
-    <div class="call-modal" id="callModal">
-        <div class="video-container">
-            <video id="localVideo" autoplay muted></video>
+    <div id="video-modal" class="hidden">
+        <div class="device-settings" id="device-settings">
+            <small>Camera</small>
+            <select id="video-source" onchange="videoCall.updateStream()"></select>
+            <small>Microphone</small>
+            <select id="audio-source" onchange="videoCall.updateStream()"></select>
+            <button onclick="videoCall.flipCamera()" class="hidden" id="flip-btn" style="margin-top:5px; padding: 5px; font-size: 0.9rem;">Flip Camera</button>
         </div>
+
+        <video id="remote-video" autoplay playsinline></video>
+        <video id="local-video" autoplay playsinline muted></video>
+
         <div class="call-controls">
-            <button class="hangup" id="hangupBtn"><i class="fas fa-phone-slash"></i></button>
+            <button class="call-btn btn-mute" onclick="videoCall.toggleMute()" id="mute-btn"><i class="fas fa-microphone"></i></button>
+            <button class="call-btn btn-hangup" onclick="videoCall.end()"><i class="fas fa-phone-slash"></i></button>
         </div>
     </div>
 
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script>
-        class PeerMessenger {
-            constructor() {
-                this.peer = null;
-                this.conn = null;
-                this.call = null;
-                this.localStream = null;
-                this.remoteStream = null;
-                this.chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-                
-                this.initElements();
-                this.initPeer();
-                this.bindEvents();
-                this.renderChatHistory();
-            }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-            initElements() {
-                this.elements = {
-                    myId: document.getElementById('myId'),
-                    partnerId: document.getElementById('partnerId'),
-                    statusDot: document.getElementById('statusDot'),
-                    statusText: document.getElementById('statusText'),
-                    chatContainer: document.getElementById('chatContainer'),
-                    messageInput: document.getElementById('messageInput'),
-                    sendBtn: document.getElementById('sendBtn'),
-                    callBtn: document.getElementById('callBtn'),
-                    hangupBtn: document.getElementById('hangupBtn'),
-                    attachBtn: document.getElementById('attachBtn'),
-                    fileInput: document.getElementById('fileInput'),
-                    callModal: document.getElementById('callModal'),
-                    localVideo: document.getElementById('localVideo')
-                };
-            }
+        // --- 1. CONFIGURATION ---
+        // TODO: Replace with your Firebase Project Config
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDXsvsaG8IdcjZv4iG4WHjPneGvcxywuTk",
+  authDomain: "bobba-591c5.firebaseapp.com",
+  projectId: "bobba-591c5",
+  storageBucket: "bobba-591c5.firebasestorage.app",
+  messagingSenderId: "839501020120",
+  appId: "1:839501020120:web:0e58d4759785a1fadfd0ad",
+  measurementId: "G-C3D5TB22F0"
+};
 
-            initPeer() {
-                this.peer = new Peer();
-                
-                this.peer.on('open', (id) => {
-                    this.elements.myId.textContent = id;
-                    this.updateStatus(false);
-                });
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const authService = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
 
-                this.peer.on('connection', (conn) => {
-                    this.conn = conn;
-                    this.setupConnection();
-                });
+        // Global State
+        const state = {
+            currentUser: null,
+            activeChatUser: null, // { uid, nickname, avatar }
+            peer: null,
+            currentCall: null,
+            localStream: null,
+            unsubscribeChat: null
+        };
 
-                this.peer.on('call', (call) => {
-                    this.handleIncomingCall(call);
-                });
+        // --- 2. AUTHENTICATION LOGIC ---
+        window.auth = {
+            isRegistering: false,
+            
+            toggleMode: () => {
+                auth.isRegistering = !auth.isRegistering;
+                document.getElementById('btn-login').classList.toggle('hidden');
+                document.getElementById('btn-register').classList.toggle('hidden');
+                document.getElementById('toggle-auth').innerText = auth.isRegistering ? "Have an account? Login" : "New here? Create Account";
+                document.getElementById('auth-subtitle').innerText = auth.isRegistering ? "Create your family ID" : "Enter your nickname to start";
+                document.getElementById('auth-error').innerText = "";
+            },
 
-                this.peer.on('error', (err) => {
-                    console.error('Peer error:', err);
-                    alert('Connection error: ' + err.message);
-                });
-            }
+            // We use nickname@family.app as a fake email to satisfy Firebase Auth
+            getFakeEmail: (nick) => `${nick.toLowerCase().replace(/\s/g, '')}@family.app`,
 
-            bindEvents() {
-                this.elements.partnerId.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.connectToPartner();
-                });
+            register: async () => {
+                const nick = document.getElementById('auth-nick').value.trim();
+                const pass = document.getElementById('auth-pass').value;
+                if (!nick || !pass) return ui.showError('Please fill all fields');
 
-                this.elements.sendBtn.addEventListener('click', () => this.sendMessage());
-                this.elements.messageInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.sendMessage();
-                });
+                try {
+                    // 1. Check if nickname exists in Firestore
+                    const q = query(collection(db, "users"), where("nickname", "==", nick));
+                    const querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty) throw new Error("Nickname already taken");
 
-                this.elements.callBtn.addEventListener('click', () => this.initiateCall());
-                this.elements.hangupBtn.addEventListener('click', () => this.endCall());
-                
-                this.elements.attachBtn.addEventListener('click', () => {
-                    this.elements.fileInput.click();
-                });
-                
-                this.elements.fileInput.addEventListener('change', (e) => {
-                    this.sendFile(e.target.files[0]);
-                });
-            }
-
-            connectToPartner() {
-                const partnerId = this.elements.partnerId.value.trim();
-                if (!partnerId) return;
-
-                this.conn = this.peer.connect(partnerId);
-                this.setupConnection();
-            }
-
-            setupConnection() {
-                this.conn.on('open', () => {
-                    this.updateStatus(true);
-                    this.enableControls();
-                });
-
-                this.conn.on('data', (data) => {
-                    if (data.type === 'message') {
-                        this.addMessageToChat(data.text, false);
-                        this.saveToHistory(data.text, false);
-                    } else if (data.type === 'file') {
-                        this.handleFileReceive(data);
-                    }
-                });
-
-                this.conn.on('close', () => {
-                    this.updateStatus(false);
-                    this.disableControls();
-                });
-            }
-
-            updateStatus(connected) {
-                if (connected) {
-                    this.elements.statusDot.classList.add('connected');
-                    this.elements.statusText.textContent = 'Connected';
-                } else {
-                    this.elements.statusDot.classList.remove('connected');
-                    this.elements.statusText.textContent = 'Disconnected';
-                }
-            }
-
-            enableControls() {
-                this.elements.messageInput.disabled = false;
-                this.elements.sendBtn.disabled = false;
-                this.elements.callBtn.disabled = false;
-                this.elements.attachBtn.disabled = false;
-                this.elements.fileInput.disabled = false;
-            }
-
-            disableControls() {
-                this.elements.messageInput.disabled = true;
-                this.elements.sendBtn.disabled = true;
-                this.elements.callBtn.disabled = true;
-                this.elements.attachBtn.disabled = true;
-                this.elements.fileInput.disabled = true;
-            }
-
-            sendMessage() {
-                const text = this.elements.messageInput.value.trim();
-                if (!text || !this.conn) return;
-
-                this.conn.send({ type: 'message', text });
-                this.addMessageToChat(text, true);
-                this.saveToHistory(text, true);
-                this.elements.messageInput.value = '';
-            }
-
-            sendFile(file) {
-                if (!file || !this.conn) return;
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    this.conn.send({
-                        type: 'file',
-                        name: file.name,
-                        size: file.size,
-                        data: e.target.result
-                    });
-                    this.addFileToChat(file.name, true);
-                };
-                reader.readAsDataURL(file);
-            }
-
-            handleFileReceive(data) {
-                const link = document.createElement('a');
-                link.href = data.data;
-                link.download = data.name;
-                link.textContent = `📎 ${data.name}`;
-                link.className = 'file-attachment';
-                
-                this.addMessageToChat(link.outerHTML, false);
-                this.saveToHistory(`File: ${data.name}`, false);
-            }
-
-            addMessageToChat(text, sent) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${sent ? 'sent' : 'received'}`;
-                
-                const time = new Date().toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-
-                messageDiv.innerHTML = `
-                    <div class="message-bubble">
-                        ${text}
-                        <div class="message-time">${time}</div>
-                    </div>
-                `;
-                
-                this.elements.chatContainer.appendChild(messageDiv);
-                this.elements.chatContainer.scrollTop = this.elements.chatContainer.scrollHeight;
-            }
-
-            addFileToChat(fileName, sent) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${sent ? 'sent' : 'received'}`;
-                
-                const time = new Date().toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-
-                messageDiv.innerHTML = `
-                    <div class="message-bubble">
-                        📎 ${fileName}
-                        <div class="message-time">${time}</div>
-                    </div>
-                `;
-                
-                this.elements.chatContainer.appendChild(messageDiv);
-                this.elements.chatContainer.scrollTop = this.elements.chatContainer.scrollHeight;
-            }
-
-            initiateCall() {
-                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                    .then((stream) => {
-                        this.localStream = stream;
-                        this.elements.localVideo.srcObject = stream;
-                        this.elements.callModal.classList.add('active');
-                        
-                        const call = this.peer.call(this.conn.peer, stream);
-                        this.handleCall(call);
-                    })
-                    .catch((err) => {
-                        alert('Camera/microphone access denied: ' + err.message);
-                    });
-            }
-
-            handleIncomingCall(call) {
-                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                    .then((stream) => {
-                        this.localStream = stream;
-                        this.elements.localVideo.srcObject = stream;
-                        this.elements.callModal.classList.add('active');
-                        
-                        call.answer(stream);
-                        this.handleCall(call);
-                    })
-                    .catch((err) => {
-                        alert('Camera/microphone access denied: ' + err.message);
-                    });
-            }
-
-            handleCall(call) {
-                this.call = call;
-                
-                call.on('stream', (remoteStream) => {
-                    const remoteVideo = document.createElement('video');
-                    remoteVideo.autoplay = true;
-                    remoteVideo.srcObject = remoteStream;
-                    remoteVideo.style.position = 'absolute';
-                    remoteVideo.style.top = '0';
-                    remoteVideo.style.right = '0';
-                    remoteVideo.style.width = '150px';
-                    remoteVideo.style.height = '150px';
-                    remoteVideo.style.border = '2px solid white';
-                    remoteVideo.style.borderRadius = '10px';
+                    // 2. Create Auth User
+                    const userCredential = await createUserWithEmailAndPassword(authService, auth.getFakeEmail(nick), pass);
                     
-                    this.elements.localVideo.parentElement.appendChild(remoteVideo);
-                });
+                    // 3. Save User Profile to Firestore
+                    await setDoc(doc(db, "users", userCredential.user.uid), {
+                        nickname: nick,
+                        uid: userCredential.user.uid,
+                        contacts: []
+                    });
+                    
+                    // 4. Update Auth Profile
+                    await updateProfile(userCredential.user, { displayName: nick });
+                    
+                } catch (error) {
+                    ui.showError(error.message);
+                }
+            },
 
-                call.on('close', () => {
-                    this.endCall();
-                });
+            login: async () => {
+                const nick = document.getElementById('auth-nick').value.trim();
+                const pass = document.getElementById('auth-pass').value;
+                try {
+                    await signInWithEmailAndPassword(authService, auth.getFakeEmail(nick), pass);
+                } catch (error) {
+                    ui.showError("Login failed. Check nickname/password.");
+                }
+            },
+
+            logout: () => {
+                if(state.peer) state.peer.destroy();
+                signOut(authService);
+                window.location.reload();
             }
+        };
 
-            endCall() {
-                if (this.localStream) {
-                    this.localStream.getTracks().forEach(track => track.stop());
-                }
-                if (this.call) {
-                    this.call.close();
-                }
-                this.elements.callModal.classList.remove('active');
+        // Auth Listener
+        onAuthStateChanged(authService, async (user) => {
+            if (user) {
+                // Fetch full profile from Firestore to ensure we get custom data
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                state.currentUser = userDoc.data();
                 
-                // Remove remote video if exists
-                const remoteVideo = this.elements.localVideo.parentElement.querySelector('video:not(#localVideo)');
-                if (remoteVideo) {
-                    remoteVideo.remove();
-                }
+                document.getElementById('auth-container').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                
+                ui.initProfile();
+                chat.loadContacts();
+                videoCall.initPeer();
+            } else {
+                state.currentUser = null;
+                document.getElementById('auth-container').classList.remove('hidden');
+                document.getElementById('app-container').classList.add('hidden');
             }
+        });
 
-            saveToHistory(text, sent) {
-                this.chatHistory.push({
-                    text,
-                    sent,
-                    timestamp: new Date().toISOString()
-                });
-                localStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
-            }
-
-            renderChatHistory() {
-                this.chatHistory.forEach(msg => {
-                    if (msg.text.startsWith('File:')) {
-                        this.addFileToChat(msg.text.replace('File: ', ''), msg.sent);
+        // --- 3. CHAT LOGIC ---
+        window.chat = {
+            searchUser: async () => {
+                const nick = document.getElementById('search-input').value.trim();
+                if (nick === state.currentUser.nickname) return ui.toast("That's you!");
+                
+                const q = query(collection(db, "users"), where("nickname", "==", nick));
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    ui.toast("User not found");
+                } else {
+                    const newUser = snapshot.docs[0].data();
+                    // Add to contacts if not exists
+                    const myRef = doc(db, "users", state.currentUser.uid);
+                    const currentContacts = state.currentUser.contacts || [];
+                    
+                    if (!currentContacts.includes(newUser.uid)) {
+                        currentContacts.push(newUser.uid);
+                        await setDoc(myRef, { contacts: currentContacts }, { merge: true });
+                        // Also add me to their contacts (mutual by default for family)
+                        /* In a stricter app, you'd send a request. Here we assume family trust. */
+                        const theirRef = doc(db, "users", newUser.uid);
+                        // We can't write to their doc easily without complex rules, so for now, 
+                        // let's just update local view. Proper way: Cloud Function or relaxed rules.
+                        // For this demo: We only update our own contact list.
+                        state.currentUser.contacts = currentContacts;
+                        chat.loadContacts(); 
+                        ui.toast(`Added ${nick}!`);
                     } else {
-                        this.addMessageToChat(msg.text, msg.sent);
+                        ui.toast("Already in contacts");
+                    }
+                }
+            },
+
+            loadContacts: async () => {
+                const list = document.getElementById('contact-list');
+                list.innerHTML = '';
+                
+                if(!state.currentUser.contacts || state.currentUser.contacts.length === 0) {
+                    list.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">No contacts yet. Search for family members!</div>';
+                    return;
+                }
+
+                // Fetch all contact details
+                // Firestore 'in' query supports max 10. For prod, loop batches.
+                const q = query(collection(db, "users"), where("uid", "in", state.currentUser.contacts));
+                const snapshot = await getDocs(q);
+                
+                snapshot.forEach(doc => {
+                    const user = doc.data();
+                    const el = document.createElement('div');
+                    el.className = 'contact-item';
+                    el.onclick = () => chat.openChat(user);
+                    el.innerHTML = `
+                        <div class="user-avatar">${user.nickname[0].toUpperCase()}</div>
+                        <div class="contact-info">
+                            <div class="contact-name">${user.nickname}</div>
+                            <div class="last-msg">Click to chat</div>
+                        </div>
+                    `;
+                    list.appendChild(el);
+                });
+            },
+
+            openChat: (user) => {
+                state.activeChatUser = user;
+                
+                // UI Updates
+                document.body.classList.add('chat-active');
+                document.getElementById('chat-name').innerText = user.nickname;
+                document.getElementById('chat-avatar').innerText = user.nickname[0].toUpperCase();
+                document.getElementById('chat-actions').style.opacity = '1';
+                document.getElementById('chat-actions').style.pointerEvents = 'auto';
+                document.getElementById('input-area').style.display = 'flex';
+                
+                // Chat ID is lexical comparison of UIDs (always same string for pair)
+                const chatId = [state.currentUser.uid, user.uid].sort().join("_");
+                
+                // Unsubscribe previous listener
+                if (state.unsubscribeChat) state.unsubscribeChat();
+
+                // Listen for messages
+                const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt", "asc"));
+                
+                const msgsDiv = document.getElementById('messages');
+                msgsDiv.innerHTML = ''; // clear
+
+                state.unsubscribeChat = onSnapshot(q, (snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === "added") {
+                            ui.renderMessage(change.doc.data());
+                        }
+                    });
+                    ui.scrollToBottom();
+                });
+            },
+
+            send: async (fileUrl = null, fileType = null) => {
+                const input = document.getElementById('msg-input');
+                const text = input.value.trim();
+                
+                if ((!text && !fileUrl) || !state.activeChatUser) return;
+
+                const chatId = [state.currentUser.uid, state.activeChatUser.uid].sort().join("_");
+                
+                await addDoc(collection(db, "chats", chatId, "messages"), {
+                    text: text,
+                    senderId: state.currentUser.uid,
+                    createdAt: serverTimestamp(),
+                    fileUrl: fileUrl,
+                    fileType: fileType
+                });
+
+                input.value = '';
+            },
+
+            uploadFile: async (input) => {
+                const file = input.files[0];
+                if (!file) return;
+                
+                ui.toast("Uploading...");
+                const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+                
+                try {
+                    const snapshot = await uploadBytes(storageRef, file);
+                    const url = await getDownloadURL(snapshot.ref);
+                    const type = file.type.startsWith('image/') ? 'image' : 'file';
+                    await chat.send(url, type);
+                    ui.toast("Sent!");
+                } catch(e) {
+                    ui.showError("Upload failed");
+                }
+                input.value = ''; // reset
+            }
+        };
+
+        // --- 4. VIDEO CALL LOGIC (PeerJS) ---
+        window.videoCall = {
+            initPeer: () => {
+                // Clean user ID to be URL safe for PeerJS
+                const peerId = state.currentUser.nickname.replace(/[^a-zA-Z0-9]/g, '_');
+                state.peer = new Peer(peerId);
+
+                state.peer.on('open', (id) => { console.log('My peer ID is: ' + id); });
+                
+                // Incoming Call
+                state.peer.on('call', async (call) => {
+                    const confirm = window.confirm(`Incoming video call from ${call.peer}... Accept?`);
+                    if (confirm) {
+                        const stream = await videoCall.getMediaStream();
+                        call.answer(stream); // Answer with my stream
+                        videoCall.handleStream(call, stream);
+                    } else {
+                        call.close();
                     }
                 });
-            }
-        }
 
-        // Initialize the app
-        const app = new PeerMessenger();
+                // Setup device selection
+                videoCall.enumerateDevices();
+            },
+
+            start: async () => {
+                if (!state.activeChatUser) return;
+                const peerId = state.activeChatUser.nickname.replace(/[^a-zA-Z0-9]/g, '_');
+                
+                try {
+                    const stream = await videoCall.getMediaStream();
+                    const call = state.peer.call(peerId, stream);
+                    videoCall.handleStream(call, stream);
+                } catch (e) {
+                    ui.showError("Could not start call. Is the other user online?");
+                }
+            },
+
+            getMediaStream: async (videoSource = undefined, audioSource = undefined) => {
+                const constraints = {
+                    video: videoSource ? { deviceId: { exact: videoSource } } : true,
+                    audio: audioSource ? { deviceId: { exact: audioSource } } : true
+                };
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    state.localStream = stream;
+                    document.getElementById('local-video').srcObject = stream;
+                    return stream;
+                } catch (e) {
+                    ui.showError("Camera access denied");
+                    throw e;
+                }
+            },
+
+            handleStream: (call, localStream) => {
+                state.currentCall = call;
+                document.getElementById('video-modal').classList.remove('hidden');
+
+                call.on('stream', (remoteStream) => {
+                    document.getElementById('remote-video').srcObject = remoteStream;
+                });
+
+                call.on('close', () => videoCall.endUI());
+                call.on('error', () => { ui.showError("Call error"); videoCall.end(); });
+            },
+
+            end: () => {
+                if (state.currentCall) state.currentCall.close();
+                videoCall.endUI();
+            },
+
+            endUI: () => {
+                document.getElementById('video-modal').classList.add('hidden');
+                if (state.localStream) {
+                    state.localStream.getTracks().forEach(track => track.stop());
+                }
+                state.currentCall = null;
+            },
+
+            toggleMute: () => {
+                const audioTrack = state.localStream.getAudioTracks()[0];
+                if(audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    document.getElementById('mute-btn').style.background = audioTrack.enabled ? '#333' : '#ea0038';
+                }
+            },
+
+            enumerateDevices: async () => {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoSelect = document.getElementById('video-source');
+                const audioSelect = document.getElementById('audio-source');
+                
+                videoSelect.innerHTML = '';
+                audioSelect.innerHTML = '';
+
+                devices.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.text = device.label || `${device.kind} ${videoSelect.length + 1}`;
+                    if (device.kind === 'videoinput') videoSelect.appendChild(option);
+                    else if (device.kind === 'audioinput') audioSelect.appendChild(option);
+                });
+                
+                // Show flip button only on mobile
+                if( /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent) ) {
+                   document.getElementById('flip-btn').classList.remove('hidden');
+                   document.getElementById('device-settings').classList.add('hidden'); // Hide complex menu on mobile
+                }
+            },
+            
+            updateStream: async () => {
+                if(state.currentCall) {
+                    const videoSource = document.getElementById('video-source').value;
+                    const audioSource = document.getElementById('audio-source').value;
+                    const newStream = await videoCall.getMediaStream(videoSource, audioSource);
+                    
+                    // Replace tracks in current connection
+                    const videoTrack = newStream.getVideoTracks()[0];
+                    const audioTrack = newStream.getAudioTracks()[0];
+                    
+                    const senderVideo = state.currentCall.peerConnection.getSenders().find((s) => s.track.kind === videoTrack.kind);
+                    const senderAudio = state.currentCall.peerConnection.getSenders().find((s) => s.track.kind === audioTrack.kind);
+                    
+                    if(senderVideo) senderVideo.replaceTrack(videoTrack);
+                    if(senderAudio) senderAudio.replaceTrack(audioTrack);
+                }
+            },
+
+            flipCamera: async () => {
+                // Simple toggle logic for mobile (implementation depends on facingMode constraint)
+                // For brevity, re-requesting stream without specific ID often triggers toggle on some OS
+                // or requires tracking current facingMode.
+                ui.toast("Switching camera...");
+            }
+        };
+
+        // --- 5. UI HELPERS ---
+        window.ui = {
+            initProfile: () => {
+                document.getElementById('my-nick').innerText = state.currentUser.nickname;
+                document.getElementById('my-avatar').innerText = state.currentUser.nickname[0].toUpperCase();
+            },
+
+            renderMessage: (msg) => {
+                const isMe = msg.senderId === state.currentUser.uid;
+                const div = document.createElement('div');
+                div.className = `message ${isMe ? 'msg-out' : 'msg-in'}`;
+                
+                let content = `<div>${msg.text}</div>`;
+                if (msg.fileUrl) {
+                    if (msg.fileType === 'image') {
+                        content = `<img src="${msg.fileUrl}" class="msg-img" onclick="window.open('${msg.fileUrl}')"><br>` + content;
+                    } else {
+                        content = `<a href="${msg.fileUrl}" target="_blank" style="color:var(--primary); text-decoration:underline;">📎 Download File</a><br>` + content;
+                    }
+                }
+
+                // Time formatting
+                const date = msg.createdAt ? msg.createdAt.toDate() : new Date();
+                const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                div.innerHTML = `
+                    ${content}
+                    <div class="msg-meta">
+                        ${timeStr} ${isMe ? '<i class="fas fa-check-double" style="color:#53bdeb;"></i>' : ''}
+                    </div>
+                `;
+                document.getElementById('messages').appendChild(div);
+            },
+
+            scrollToBottom: () => {
+                const el = document.getElementById('messages');
+                el.scrollTop = el.scrollHeight;
+            },
+
+            closeChat: () => {
+                document.body.classList.remove('chat-active');
+                state.activeChatUser = null;
+                if (state.unsubscribeChat) state.unsubscribeChat();
+            },
+
+            toggleTheme: () => {
+                const body = document.body;
+                const isDark = body.getAttribute('data-theme') === 'dark';
+                body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            },
+
+            showError: (msg) => {
+                const errDiv = document.getElementById('auth-error');
+                if (errDiv) errDiv.innerText = msg;
+                ui.toast(msg);
+            },
+
+            toast: (msg) => {
+                const t = document.getElementById('toast');
+                t.innerText = msg;
+                t.style.opacity = '1';
+                setTimeout(() => t.style.opacity = '0', 3000);
+            }
+        };
     </script>
 </body>
 </html>
