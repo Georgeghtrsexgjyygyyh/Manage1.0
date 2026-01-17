@@ -1,83 +1,153 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FamilyChat Pro | Secure Messenger</title>
-
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
     <style>
-        /* (Весь ваш CSS без изменений, можно вставить тот же самый) */
-        :root{--primary:#00a884;--primary-dark:#008f6f;--bg-main:#d1d7db;--bg-panel:#ffffff;--bg-chat:#efeae2;--text-main:#111b21;--text-sub:#667781;--incoming:#ffffff;--outgoing:#d9fdd3;--danger:#ef5350;--success:#25d366;--shadow-card:0 4px 18px rgba(0,0,0,0.1);--header-height:60px;--sidebar-width:380px}
-        [data-theme="dark"]{--primary:#00a884;--primary-dark:#02906f;--bg-main:#0b141a;--bg-panel:#202c33;--bg-chat:#0b141a;--text-main:#e9edef;--text-sub:#8696a0;--incoming:#202c33;--outgoing:#005c4b;--shadow-card:0 4px 18px rgba(0,0,0,0.3)}
-        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-        body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;height:100dvh;background-color:var(--bg-main);color:var(--text-main);overflow:hidden}
-        button{border:none;outline:none;cursor:pointer;transition:all .2s;font-family:inherit}
-        input{font-family:inherit;outline:none}
-        .app-wrapper{display:flex;width:100%;height:100%;max-width:1600px;margin:0 auto;position:relative;background:var(--bg-panel);overflow:hidden}
-        .flex{display:flex}.flex-col{flex-direction:column}.center{align-items:center;justify-content:center}.hidden{display:none!important}.scroll-y{overflow-y:auto}
-        #auth-view{position:absolute;inset:0;z-index:2000;background:var(--bg-main);display:flex;align-items:center;justify-content:center;padding:20px}
-        .auth-card{background:var(--bg-panel);width:100%;max-width:450px;padding:40px;border-radius:12px;box-shadow:var(--shadow-card);text-align:center}
-        .auth-logo{width:80px;height:80px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 20px}
-        .auth-input{width:100%;padding:15px;margin-bottom:15px;border:1px solid var(--text-sub);border-radius:8px;font-size:16px;background:var(--bg-panel);color:var(--text-main)}
-        .btn-primary{width:100%;padding:15px;background:var(--primary);color:white;border-radius:8px;font-weight:600;font-size:16px;margin-top:10px}
-        .btn-primary:active{transform:scale(.98)}
-        .auth-switch{margin-top:20px;color:var(--primary);cursor:pointer;font-size:14px}
-        aside{width:var(--sidebar-width);border-right:1px solid rgba(0,0,0,.1);display:flex;flex-direction:column;background:var(--bg-panel);z-index:10;height:100%}
-        .header{height:var(--header-height);padding:0 16px;display:flex;align-items:center;justify-content:space-between;background:var(--bg-panel);border-bottom:1px solid rgba(0,0,0,.05)}
-        .avatar{width:40px;height:40px;border-radius:50%;background:var(--text-sub);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:18px;object-fit:cover}
-        .search-container{padding:10px;border-bottom:1px solid rgba(0,0,0,.05)}
-        .search-box{background:rgba(0,0,0,.05);border-radius:8px;display:flex;align-items:center;padding:0 10px}
-        .search-box input{border:none;background:transparent;padding:10px;flex:1;color:var(--text-main)}
-        .contact-list{flex:1;overflow-y:auto}
-        .contact-item{display:flex;align-items:center;padding:12px 16px;cursor:pointer;transition:background .2s;position:relative}
-        .contact-item:hover{background:rgba(0,0,0,.03)}
-        .contact-item.active{background:rgba(0,0,0,.06)}
-        .contact-info{margin-left:15px;flex:1;overflow:hidden}
-        .contact-name{font-weight:500;font-size:17px;margin-bottom:2px}
-        .contact-status{font-size:13px;color:var(--text-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-        .unread-badge{background:var(--success);color:white;font-size:12px;padding:2px 6px;border-radius:10px;margin-left:auto}
-        main{flex:1;display:flex;flex-direction:column;background:var(--bg-chat);position:relative;height:100%}
-        main::before{content:"";position:absolute;inset:0;opacity:.4;background-image:url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239ca3af' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");pointer-events:none}
-        .chat-header{background:var(--bg-panel);height:var(--header-height);padding:0 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(0,0,0,.05);z-index:5}
-        .chat-back-btn{display:none;margin-right:15px;font-size:20px;color:var(--text-main)}
-        .chat-user-meta{display:flex;align-items:center;cursor:pointer}
-        .chat-actions i{font-size:20px;color:var(--primary);margin-left:25px;cursor:pointer;padding:8px;border-radius:50%}
-        .chat-actions i:hover{background:rgba(0,0,0,.05)}
-        .messages-container{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;z-index:2}
-        .msg{max-width:65%;padding:8px 12px;border-radius:8px;font-size:15px;line-height:1.4;position:relative;word-wrap:break-word;box-shadow:0 1px 2px rgba(0,0,0,.1)}
-        .msg-in{align-self:flex-start;background:var(--incoming);border-top-left-radius:0}
-        .msg-out{align-self:flex-end;background:var(--outgoing);border-top-right-radius:0}
-        .msg-time{font-size:10px;color:var(--text-sub);text-align:right;margin-top:4px;display:block;float:right;margin-left:10px}
-        .msg-img{max-width:100%;border-radius:6px;margin-bottom:4px;display:block;cursor:pointer}
-        .input-area{background:var(--bg-panel);padding:10px 16px;display:flex;align-items:center;gap:10px;z-index:5}
-        .input-field{flex:1;background:rgba(0,0,0,.05);border-radius:8px;padding:12px;max-height:100px;overflow-y:auto;color:var(--text-main)}
-        .btn-icon{color:var(--text-sub);font-size:22px;padding:8px;display:flex;align-items:center;justify-content:center}
-        .btn-send{color:var(--primary)}
-        #call-overlay{position:fixed;inset:0;background:#000;z-index:3000;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s}
-        #call-overlay.active{opacity:1;pointer-events:auto}
-        .video-grid{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
-        video{background:#000}
-        #remote-video{width:100%;height:100%;object-fit:contain}
-        #local-video{position:absolute;bottom:100px;right:20px;width:120px;height:160px;border-radius:12px;border:2px solid white;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,.5);z-index:3002;transition:all .3s}
-        #local-video.dragging{opacity:.8}
-        .call-controls{position:absolute;bottom:30px;left:0;right:0;display:flex;justify-content:center;gap:20px;z-index:3003;padding-bottom:env(safe-area-inset-bottom)}
-        .ctrl-btn{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);color:white;display:flex;align-items:center;justify-content:center;font-size:24px;transition:.2s}
-        .ctrl-btn:hover{background:rgba(255,255,255,.3);transform:scale(1.1)}
-        .ctrl-btn.bg-red{background:var(--danger)}
-        .ctrl-btn.active{background:white;color:#333}
-        .call-status-pill{position:absolute;top:40px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);padding:8px 20px;border-radius:30px;color:white;font-size:14px;z-index:3003;backdrop-filter:blur(5px)}
-        #incoming-modal{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-150%);background:rgba(32,44,51,.95);width:90%;max-width:400px;padding:20px;border-radius:16px;z-index:4000;box-shadow:0 10px 40px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:space-between;color:white;transition:transform .4s cubic-bezier(.175,.885,.32,1.275);backdrop-filter:blur(10px)}
-        #incoming-modal.show{transform:translateX(-50%) translateY(0)}
-        .incoming-info{display:flex;align-items:center;gap:15px}
-        .incoming-actions{display:flex;gap:15px}
-        .btn-accept{background:var(--success);width:45px;height:45px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:18px;animation:pulse 1.5s infinite}
-        .btn-decline{background:var(--danger);width:45px;height:45px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;font-size:18px}
-        @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,.7)}70%{box-shadow:0 0 0 10px rgba(37,211,102,0)}100%{box-shadow:0 0 0 0 rgba(37,211,102,0)}}
-        @media (max-width:768px){.app-wrapper{border-radius:0;box-shadow:none}aside{width:100%;position:absolute}main{width:100%;position:absolute;transform:translateX(100%);transition:transform .3s ease-in-out;z-index:20}body.chat-open aside{transform:translateX(-20%);opacity:0}body.chat-open main{transform:translateX(0)}.chat-back-btn{display:block}#local-video{width:90px;height:130px;bottom:120px;right:15px}.msg{font-size:16px}#device-selector{display:none!important}}
-        #toast-container{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:5000;text-align:center;width:100%;pointer-events:none}
-        .toast{display:inline-block;background:#333;color:white;padding:12px 24px;border-radius:30px;margin-top:10px;opacity:0;transition:.3s;transform:translateY(20px);font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.3)}
-        .toast.visible{opacity:1;transform:translateY(0)}
+        /* --- СТИЛИ ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ --- */
+        :root {
+            --primary: #00a884;
+            --primary-dark: #008f6f;
+            --bg-main: #d1d7db;
+            --bg-panel: #ffffff;
+            --bg-chat: #efeae2;
+            --text-main: #111b21;
+            --text-sub: #667781;
+            --incoming: #ffffff;
+            --outgoing: #d9fdd3;
+            --danger: #ef5350;
+            --success: #25d366;
+            --shadow-card: 0 4px 18px rgba(0,0,0,0.1);
+            --header-height: 60px;
+            --sidebar-width: 380px;
+        }
+
+        [data-theme="dark"] {
+            --primary: #00a884;
+            --primary-dark: #02906f;
+            --bg-main: #0b141a;
+            --bg-panel: #202c33;
+            --bg-chat: #0b141a;
+            --text-main: #e9edef;
+            --text-sub: #8696a0;
+            --incoming: #202c33;
+            --outgoing: #005c4b;
+            --shadow-card: 0 4px 18px rgba(0,0,0,0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; height: 100dvh; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; }
+        button { border: none; outline: none; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+        input { font-family: inherit; outline: none; }
+        
+        .app-wrapper { display: flex; width: 100%; height: 100%; max-width: 1600px; margin: 0 auto; position: relative; background: var(--bg-panel); overflow: hidden; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .center { align-items: center; justify-content: center; }
+        .hidden { display: none !important; }
+        .scroll-y { overflow-y: auto; scrollbar-width: thin; }
+
+        /* --- АВТОРИЗАЦИЯ --- */
+        #auth-view { position: absolute; inset: 0; z-index: 2000; background: var(--bg-main); display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-card { background: var(--bg-panel); width: 100%; max-width: 450px; padding: 40px; border-radius: 12px; box-shadow: var(--shadow-card); text-align: center; }
+        .auth-logo { width: 80px; height: 80px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px; }
+        .auth-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid var(--text-sub); border-radius: 8px; font-size: 16px; background: var(--bg-panel); color: var(--text-main); }
+        .btn-primary { width: 100%; padding: 15px; background: var(--primary); color: white; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 10px; }
+        .btn-primary:active { transform: scale(0.98); }
+        .auth-switch { margin-top: 20px; color: var(--primary); cursor: pointer; font-size: 14px; }
+
+        /* --- СПИСОК КОНТАКТОВ --- */
+        aside { width: var(--sidebar-width); border-right: 1px solid rgba(0,0,0,0.1); display: flex; flex-direction: column; background: var(--bg-panel); z-index: 10; height: 100%; }
+        .header { height: var(--header-height); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-panel); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--text-sub); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; object-fit: cover; }
+        
+        .search-container { padding: 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .search-box { background: rgba(0,0,0,0.05); border-radius: 8px; display: flex; align-items: center; padding: 0 10px; }
+        .search-box input { border: none; background: transparent; padding: 10px; flex: 1; color: var(--text-main); }
+        
+        .contact-list { flex: 1; overflow-y: auto; }
+        .contact-item { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; transition: background 0.2s; position: relative; }
+        .contact-item:hover { background: rgba(0,0,0,0.03); }
+        .contact-item.active { background: rgba(0,0,0,0.06); }
+        .contact-info { margin-left: 15px; flex: 1; overflow: hidden; }
+        .contact-name { font-weight: 500; font-size: 17px; margin-bottom: 2px; }
+        .contact-status { font-size: 13px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .unread-badge { background: var(--success); color: white; font-size: 12px; padding: 2px 6px; border-radius: 10px; margin-left: auto; }
+
+        /* --- ЧАТ --- */
+        main { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); position: relative; height: 100%; }
+        main::before { content: ""; position: absolute; inset: 0; opacity: 0.4; background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239ca3af' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E"); pointer-events: none; }
+
+        .chat-header { background: var(--bg-panel); height: var(--header-height); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 5; }
+        .chat-back-btn { display: none; margin-right: 15px; font-size: 20px; color: var(--text-main); }
+        .chat-user-meta { display: flex; align-items: center; cursor: pointer; }
+        .chat-actions i { font-size: 20px; color: var(--primary); margin-left: 25px; cursor: pointer; padding: 8px; border-radius: 50%; }
+        .chat-actions i:hover { background: rgba(0,0,0,0.05); }
+
+        .messages-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; z-index: 2; }
+        .msg { max-width: 65%; padding: 8px 12px; border-radius: 8px; font-size: 15px; line-height: 1.4; position: relative; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .msg-in { align-self: flex-start; background: var(--incoming); border-top-left-radius: 0; }
+        .msg-out { align-self: flex-end; background: var(--outgoing); border-top-right-radius: 0; }
+        .msg-time { font-size: 10px; color: var(--text-sub); text-align: right; margin-top: 4px; display: block; float: right; margin-left: 10px; }
+        .msg-img { max-width: 100%; border-radius: 6px; margin-bottom: 4px; display: block; cursor: pointer; }
+
+        .input-area { background: var(--bg-panel); padding: 10px 16px; display: flex; align-items: center; gap: 10px; z-index: 5; }
+        .input-field { flex: 1; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 12px; max-height: 100px; overflow-y: auto; color: var(--text-main); }
+        .btn-icon { color: var(--text-sub); font-size: 22px; padding: 8px; display: flex; align-items: center; justify-content: center; }
+        .btn-send { color: var(--primary); }
+
+        /* --- ВИДЕОЗВОНКИ --- */
+        #call-overlay { position: fixed; inset: 0; background: #000; z-index: 3000; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #call-overlay.active { opacity: 1; pointer-events: auto; }
+        .video-grid { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        video { background: #000; }
+        #remote-video { width: 100%; height: 100%; object-fit: contain; }
+        #local-video { position: absolute; bottom: 100px; right: 20px; width: 120px; height: 160px; border-radius: 12px; border: 2px solid white; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 3002; transition: all 0.3s; }
+        #local-video.dragging { opacity: 0.8; }
+        .call-controls { position: absolute; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; gap: 20px; z-index: 3003; padding-bottom: env(safe-area-inset-bottom); }
+        .ctrl-btn { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.2s; }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+        .ctrl-btn.bg-red { background: var(--danger); }
+        .ctrl-btn.active { background: white; color: #333; }
+
+        .call-status-pill { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 30px; color: white; font-size: 14px; z-index: 3003; backdrop-filter: blur(5px); }
+
+        /* --- МОДАЛ ВХОДЯЩЕГО ЗВОНКА --- */
+        #incoming-modal { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-150%); background: rgba(32, 44, 51, 0.95); width: 90%; max-width: 400px; padding: 20px; border-radius: 16px; z-index: 4000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between; color: white; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(10px); }
+        #incoming-modal.show { transform: translateX(-50%) translateY(0); }
+        .incoming-info { display: flex; align-items: center; gap: 15px; }
+        .incoming-actions { display: flex; gap: 15px; }
+        .btn-accept { background: var(--success); width: 45px; height: 45px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; animation: pulse 1.5s infinite; }
+        .btn-decline { background: var(--danger); width: 45px; height: 45px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
+
+        /* --- МОБИЛЬНАЯ ВЕРСИЯ --- */
+        @media (max-width: 768px) {
+            .app-wrapper { border-radius: 0; box-shadow: none; }
+            aside { width: 100%; position: absolute; }
+            main { width: 100%; position: absolute; transform: translateX(100%); transition: transform 0.3s ease-in-out; z-index: 20; }
+            body.chat-open aside { transform: translateX(-20%); opacity: 0; }
+            body.chat-open main { transform: translateX(0); }
+            .chat-back-btn { display: block; }
+            #local-video { width: 90px; height: 130px; bottom: 120px; right: 15px; }
+            .msg { font-size: 16px; }
+            #device-selector { display: none !important; }
+        }
+
+        /* --- УВЕДОМЛЕНИЯ --- */
+        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 5000; text-align: center; width: 100%; pointer-events: none; }
+        .toast { display: inline-block; background: #333; color: white; padding: 12px 24px; border-radius: 30px; margin-top: 10px; opacity: 0; transition: 0.3s; transform: translateY(20px); font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .toast.visible { opacity: 1; transform: translateY(0); }
+
+        /* --- ИНДИКАТОР ЗАГРУЗКИ --- */
+        .loader { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; margin-left: 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -85,16 +155,19 @@
     <div id="auth-view">
         <div class="auth-card">
             <div class="auth-logo"><i class="fas fa-users"></i></div>
-            <h2 style="margin-bottom:10px;">FamilyChat</h2>
-            <p style="color:var(--text-sub);margin-bottom:25px;">Connect with your loved ones</p>
-
-            <div id="auth-error" style="color:var(--danger);font-size:14px;margin-bottom:15px;display:none;"></div>
-
+            <h2 style="margin-bottom: 10px;">FamilyChat</h2>
+            <p style="color: var(--text-sub); margin-bottom: 25px;">Connect with your loved ones</p>
+            
+            <div id="auth-error" style="color: var(--danger); font-size: 14px; margin-bottom: 15px; display: none;"></div>
+            
             <input type="text" id="auth-nick" class="auth-input" placeholder="Your Nickname (e.g. Mom)" autocomplete="off">
             <input type="password" id="auth-pass" class="auth-input" placeholder="Password (simple)" autocomplete="new-password">
-
-            <button id="btn-auth-action" class="btn-primary" onclick="App.auth.login()">Login</button>
-
+            
+            <button id="btn-auth-action" class="btn-primary" onclick="App.auth.login()">
+                Login
+                <span class="loader hidden" id="auth-loader"></span>
+            </button>
+            
             <div class="auth-switch" onclick="App.auth.toggleMode()">
                 <span id="auth-switch-text">New here? Create Account</span>
             </div>
@@ -102,23 +175,24 @@
     </div>
 
     <div id="app-view" class="app-wrapper hidden">
+        
         <aside>
             <div class="header">
-                <div class="flex center" style="gap:12px;cursor:pointer;" onclick="App.ui.showProfileSettings()">
+                <div class="flex center" style="gap: 12px; cursor: pointer;" onclick="App.ui.showProfileSettings()">
                     <div id="my-avatar" class="avatar"></div>
-                    <div style="font-weight:600;" id="my-nick"></div>
+                    <div style="font-weight: 600;" id="my-nick"></div>
                 </div>
-                <div class="flex" style="gap:15px;">
+                <div class="flex" style="gap: 15px;">
                     <button class="btn-icon" onclick="App.ui.toggleTheme()"><i class="fas fa-adjust"></i></button>
                     <button class="btn-icon" onclick="App.auth.logout()"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             </div>
-
+            
             <div class="search-container">
                 <div class="search-box">
-                    <i class="fas fa-search" style="color:var(--text-sub);"></i>
+                    <i class="fas fa-search" style="color: var(--text-sub);"></i>
                     <input type="text" id="contact-search" placeholder="Search or add by nickname..." onkeyup="if(event.key === 'Enter') App.contacts.searchUser()">
-                    <button onclick="App.contacts.searchUser()" style="padding:8px;color:var(--primary);font-weight:bold;">ADD</button>
+                    <button onclick="App.contacts.searchUser()" style="padding: 8px; color: var(--primary); font-weight: bold;">ADD</button>
                 </div>
             </div>
 
@@ -130,10 +204,10 @@
                 <div class="flex center">
                     <button class="chat-back-btn" onclick="App.ui.closeChat()"><i class="fas fa-arrow-left"></i></button>
                     <div class="chat-user-meta">
-                        <div id="chat-avatar" class="avatar" style="width:36px;height:36px;margin-right:10px;font-size:14px;"></div>
+                        <div id="chat-avatar" class="avatar" style="width: 36px; height: 36px; margin-right: 10px; font-size: 14px;"></div>
                         <div>
-                            <div id="chat-name" style="font-weight:600;font-size:16px;"></div>
-                            <div id="chat-status" style="font-size:12px;color:var(--text-sub);">Offline</div>
+                            <div id="chat-name" style="font-weight: 600; font-size: 16px;"></div>
+                            <div id="chat-status" style="font-size: 12px; color: var(--text-sub);">Offline</div>
                         </div>
                     </div>
                 </div>
@@ -143,8 +217,8 @@
             </div>
 
             <div id="messages-area" class="messages-container">
-                <div class="center flex flex-col" style="height:100%;color:var(--text-sub);opacity:.6;">
-                    <i class="fas fa-comments" style="font-size:48px;margin-bottom:20px;"></i>
+                <div class="center flex flex-col" style="height: 100%; color: var(--text-sub); opacity: 0.6;">
+                    <i class="fas fa-comments" style="font-size: 48px; margin-bottom: 20px;"></i>
                     <p>Select a contact to start chatting</p>
                 </div>
             </div>
@@ -152,9 +226,9 @@
             <div id="input-area" class="input-area hidden">
                 <button class="btn-icon" onclick="document.getElementById('file-upload').click()"><i class="fas fa-paperclip"></i></button>
                 <input type="file" id="file-upload" hidden onchange="App.chat.handleFileUpload(this)">
-
+                
                 <input type="text" id="msg-input" class="input-field" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') App.chat.sendMessage()">
-
+                
                 <button class="btn-icon btn-send" onclick="App.chat.sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </main>
@@ -162,10 +236,10 @@
 
     <div id="incoming-modal">
         <div class="incoming-info">
-            <div id="caller-avatar" class="avatar" style="background:white;color:#333;">?</div>
+            <div id="caller-avatar" class="avatar" style="background: white; color: #333;">?</div>
             <div>
-                <div style="font-size:12px;opacity:.8;">Incoming Video Call</div>
-                <div id="caller-name" style="font-weight:bold;font-size:18px;">Grandma</div>
+                <div style="font-size: 12px; opacity: 0.8;">Incoming Video Call</div>
+                <div id="caller-name" style="font-weight: bold; font-size: 18px;">Grandma</div>
             </div>
         </div>
         <div class="incoming-actions">
@@ -176,7 +250,7 @@
 
     <div id="call-overlay">
         <div class="call-status-pill" id="call-status-text">Connecting...</div>
-
+        
         <div class="video-grid">
             <video id="remote-video" autoplay playsinline></video>
             <video id="local-video" autoplay playsinline muted></video>
@@ -192,48 +266,40 @@
 
     <div id="toast-container"></div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
-        // ---------- IMPORTS ----------
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-        /**
-         * ========== REPLACE with your Firebase config ==========
-         */
+        // 🔧 ИСПРАВЛЕНИЕ #1: Добавлены переносы строк
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "SENDER_ID",
+            appId: "APP_ID"
+        };
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDXsvsaG8IdcjZv4iG4WHjPneGvcxywuTk",
-  authDomain: "bobba-591c5.firebaseapp.com",
-  projectId: "bobba-591c5",
-  storageBucket: "bobba-591c5.firebasestorage.app",
-  messagingSenderId: "839501020120",
-  appId: "1:839501020120:web:0e58d4759785a1fadfd0ad",
-  measurementId: "G-C3D5TB22F0"
-};
-
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        // ---------- APP STATE ----------
         const State = {
             user: null,
             activeContact: null,
             contactsMap: {},
-            // WebRTC items:
-            pc: null,
+            peer: null,
+            currentCall: null,
             localStream: null,
-            callDocRef: null,
-            unsubscribeIncoming: null,
-            isCalling: false
+            unsubscribeChat: null,
+            isCalling: false,
+            callStartTime: null
         };
 
-        // ---------- UI Manager ----------
+        // 🔧 ИСПРАВЛЕНИЕ #2: Улучшен UI Manager
         class UIManager {
             constructor() {
                 this.dom = {
@@ -244,22 +310,32 @@ const firebaseConfig = {
                     contactList: document.getElementById('contacts-list')
                 };
             }
+
             toast(msg, type = 'info') {
                 const container = document.getElementById('toast-container');
                 const el = document.createElement('div');
                 el.className = 'toast';
                 el.textContent = msg;
-                if(type === 'error') el.style.borderLeft = '4px solid var(--danger)';
+                if(type === 'error') el.style.background = 'var(--danger)';
+                if(type === 'success') el.style.background = 'var(--success)';
                 container.appendChild(el);
                 requestAnimationFrame(() => {
                     el.classList.add('visible');
                     setTimeout(() => {
                         el.classList.remove('visible');
                         setTimeout(() => el.remove(), 300);
-                    }, 3000);
+                    }, 4000);
                 });
             }
-            setLoading(is) { document.body.style.cursor = is ? 'wait' : 'default'; }
+
+            setLoading(isLoading, elementId = null) {
+                if(elementId) {
+                    const el = document.getElementById(elementId);
+                    if(el) el.style.display = isLoading ? 'inline-block' : 'none';
+                }
+                document.body.style.cursor = isLoading ? 'wait' : 'default';
+            }
+
             toggleTheme() {
                 const body = document.body;
                 const current = body.getAttribute('data-theme');
@@ -267,20 +343,24 @@ const firebaseConfig = {
                 body.setAttribute('data-theme', next);
                 localStorage.setItem('theme', next);
             }
+
             initTheme() {
                 const saved = localStorage.getItem('theme') || 'light';
                 document.body.setAttribute('data-theme', saved);
             }
+
             showApp() {
                 this.dom.auth.classList.add('hidden');
                 this.dom.app.classList.remove('hidden');
                 document.getElementById('my-nick').textContent = State.user.nickname;
                 document.getElementById('my-avatar').textContent = State.user.nickname[0].toUpperCase();
             }
+
             showAuth() {
                 this.dom.app.classList.add('hidden');
                 this.dom.auth.classList.remove('hidden');
             }
+
             openChatUI(contact) {
                 document.body.classList.add('chat-open');
                 document.getElementById('chat-name').textContent = contact.nickname;
@@ -288,67 +368,103 @@ const firebaseConfig = {
                 this.dom.inputArea.classList.remove('hidden');
                 this.dom.msgArea.innerHTML = '';
             }
+
             closeChat() {
                 document.body.classList.remove('chat-open');
                 State.activeContact = null;
-                if(State.unsubscribeChat) State.unsubscribeChat();
+                if(State.unsubscribeChat) {
+                    State.unsubscribeChat();
+                    State.unsubscribeChat = null;
+                }
+            }
+
+            showProfileSettings() {
+                App.ui.toast("Profile settings coming soon!", "info");
             }
         }
 
-        // ---------- AUTH ----------
+        // 🔧 ИСПРАВЛЕНИЕ #3: Полностью переписан AuthService
         class AuthService {
-            constructor() { this.isRegistering = false; }
+            constructor() {
+                this.isRegistering = false;
+            }
+
             toggleMode() {
                 this.isRegistering = !this.isRegistering;
                 document.getElementById('btn-auth-action').textContent = this.isRegistering ? 'Create Account' : 'Login';
                 document.getElementById('auth-switch-text').textContent = this.isRegistering ? 'Have an account? Login' : 'New here? Create Account';
                 document.getElementById('auth-error').style.display = 'none';
             }
+
             async login() {
                 const nick = document.getElementById('auth-nick').value.trim();
                 const pass = document.getElementById('auth-pass').value;
-                if(!nick || !pass) return App.ui.toast("Please fill all fields", 'error');
+                
+                if(!nick || !pass) {
+                    this.showError("Please fill all fields");
+                    return;
+                }
 
-                const sanitized = nick.toLowerCase().replace(/[^a-z0-9]/g, '');
-                const email = `${sanitized}@familyconnect.app`;
+                if(nick.length < 2) {
+                    this.showError("Nickname must be at least 2 characters");
+                    return;
+                }
+
+                const email = `${nick.toLowerCase().replace(/[^a-z0-9]/g, '')}@familyconnect.app`;
 
                 try {
-                    App.ui.setLoading(true);
-                    if (this.isRegistering) {
-                        // ensure nickname uniqueness
-                        const q = query(collection(db, "users"), where("nickname", "==", nick));
-                        const snap = await getDocs(q);
-                        if (!snap.empty) throw new Error("Nickname already taken");
+                    App.ui.setLoading(true, 'auth-loader');
+                    document.getElementById('auth-error').style.display = 'none';
 
+                    if (this.isRegistering) {
+                        // Проверка уникальности никнейма
+                        const q = query(collection(db, "users"), where("nickname", "==", nick));
+                        const check = await getDocs(q);
+                        if (!check.empty) {
+                            throw new Error("Nickname already taken. Choose another one.");
+                        }
+
+                        // Создание пользователя
                         const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                        
+                        // Создание документа в Firestore
                         await setDoc(doc(db, "users", cred.user.uid), {
                             uid: cred.user.uid,
                             nickname: nick,
                             contacts: [],
                             createdAt: serverTimestamp()
                         });
+                        
                         await updateProfile(cred.user, { displayName: nick });
-                        App.ui.toast("Account created — logged in");
+                        App.ui.toast("Account created successfully!", "success");
                     } else {
+                        // Вход в существующий аккаунт
                         await signInWithEmailAndPassword(auth, email, pass);
                     }
                 } catch (e) {
-                    const errDiv = document.getElementById('auth-error');
-                    errDiv.style.display = 'block';
-                    errDiv.textContent = e.message.replace("Firebase: ", "");
+                    this.showError(e.message.replace("Firebase: ", ""));
                 } finally {
-                    App.ui.setLoading(false);
+                    App.ui.setLoading(false, 'auth-loader');
                 }
             }
+
+            showError(message) {
+                const errDiv = document.getElementById('auth-error');
+                errDiv.style.display = 'block';
+                errDiv.textContent = message;
+            }
+
             logout() {
-                // cleanup WebRTC doc if exists
-                App.call.endCall();
-                signOut(auth);
-                window.location.reload();
+                if(App.call.peer) {
+                    App.call.peer.destroy();
+                }
+                signOut(auth).then(() => {
+                    window.location.reload();
+                });
             }
         }
 
-        // ---------- CHAT SERVICE ----------
+        // 🔧 ИСПРАВЛЕНИЕ #4: Улучшен ChatService
         class ChatService {
             async loadContacts() {
                 if(!State.user || !State.user.contacts) return;
@@ -356,24 +472,29 @@ const firebaseConfig = {
                 list.innerHTML = '';
 
                 if(State.user.contacts.length === 0) {
-                    list.innerHTML = '<div style="padding:20px;text-align:center;opacity:0.6;">Search for family members to add them!</div>';
+                    list.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.6;">Search for family members to add them!</div>';
                     return;
                 }
 
-                // batch of 10
-                const chunks = [];
-                for (let i = 0; i < State.user.contacts.length; i += 10) {
-                    chunks.push(State.user.contacts.slice(i, i+10));
-                }
+                try {
+                    // Загрузка контактов батчами (по 10)
+                    const chunks = [];
+                    for (let i = 0; i < State.user.contacts.length; i += 10) {
+                        chunks.push(State.user.contacts.slice(i, i + 10));
+                    }
 
-                for (const chunk of chunks) {
-                    const q = query(collection(db, "users"), where("uid", "in", chunk));
-                    const snap = await getDocs(q);
-                    snap.forEach(d => {
-                        const contact = d.data();
-                        State.contactsMap[contact.uid] = contact;
-                        this.renderContactItem(contact);
-                    });
+                    for (const chunk of chunks) {
+                        const q = query(collection(db, "users"), where("uid", "in", chunk));
+                        const snap = await getDocs(q);
+                        snap.forEach(d => {
+                            const contact = d.data();
+                            State.contactsMap[contact.uid] = contact;
+                            this.renderContactItem(contact);
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error loading contacts:", e);
+                    App.ui.toast("Error loading contacts", "error");
                 }
             }
 
@@ -381,6 +502,7 @@ const firebaseConfig = {
                 const list = document.getElementById('contacts-list');
                 const div = document.createElement('div');
                 div.className = 'contact-item';
+                div.dataset.uid = contact.uid;
                 div.innerHTML = `
                     <div class="avatar">${contact.nickname[0].toUpperCase()}</div>
                     <div class="contact-info">
@@ -395,31 +517,48 @@ const firebaseConfig = {
             async searchUser() {
                 const input = document.getElementById('contact-search');
                 const val = input.value.trim();
-                if(!val) return;
-                if(!State.user) return App.ui.toast("Login first", 'error');
-                if(val === State.user.nickname) return App.ui.toast("That's you!", 'error');
+                
+                if(!val) {
+                    App.ui.toast("Enter a nickname to search", "error");
+                    return;
+                }
+                
+                if(val === State.user.nickname) {
+                    App.ui.toast("That's you!", "error");
+                    return;
+                }
 
+                App.ui.setLoading(true);
                 App.ui.toast("Searching...");
-                const q = query(collection(db, "users"), where("nickname", "==", val));
-                const snap = await getDocs(q);
 
-                if(snap.empty) {
-                    App.ui.toast("User not found", 'error');
-                } else {
-                    const newUser = snap.docs[0].data();
-                    const myRef = doc(db, "users", State.user.uid);
-                    let current = State.user.contacts || [];
-                    if(!current.includes(newUser.uid)) {
-                        current.push(newUser.uid);
-                        await updateDoc(myRef, { contacts: current });
-                        State.user.contacts = current;
-                        this.renderContactItem(newUser);
-                        State.contactsMap[newUser.uid] = newUser;
-                        App.ui.toast("Added to contacts!", 'success');
-                        input.value = '';
+                try {
+                    const q = query(collection(db, "users"), where("nickname", "==", val));
+                    const snap = await getDocs(q);
+                    
+                    if(snap.empty) {
+                        App.ui.toast("User not found", "error");
                     } else {
-                        App.ui.toast("Already in contacts");
+                        const newUser = snap.docs[0].data();
+                        const myRef = doc(db, "users", State.user.uid);
+                        
+                        let current = State.user.contacts || [];
+                        if(!current.includes(newUser.uid)) {
+                            current.push(newUser.uid);
+                            await updateDoc(myRef, { contacts: current });
+                            State.user.contacts = current;
+                            this.renderContactItem(newUser);
+                            State.contactsMap[newUser.uid] = newUser;
+                            App.ui.toast(`Added ${newUser.nickname} to contacts!`, "success");
+                            input.value = '';
+                        } else {
+                            App.ui.toast("Already in contacts", "info");
+                        }
                     }
+                } catch (e) {
+                    console.error("Search error:", e);
+                    App.ui.toast("Search failed", "error");
+                } finally {
+                    App.ui.setLoading(false);
                 }
             }
 
@@ -427,11 +566,21 @@ const firebaseConfig = {
                 State.activeContact = contact;
                 App.ui.openChatUI(contact);
 
-                const chatId = [State.user.uid, contact.uid].sort().join("_");
-                const messagesColl = collection(db, "chats", chatId, "messages");
-                const q = query(messagesColl, orderBy("createdAt", "asc"));
+                // Обновляем активный элемент в списке
+                document.querySelectorAll('.contact-item').forEach(item => {
+                    item.classList.remove('active');
+                    if(item.dataset.uid === contact.uid) {
+                        item.classList.add('active');
+                    }
+                });
 
-                if(State.unsubscribeChat) State.unsubscribeChat();
+                const chatId = this.getChatId(State.user.uid, contact.uid);
+                const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt", "asc"));
+
+                if(State.unsubscribeChat) {
+                    State.unsubscribeChat();
+                }
+
                 State.unsubscribeChat = onSnapshot(q, (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
                         if (change.type === "added") {
@@ -441,23 +590,28 @@ const firebaseConfig = {
                 });
             }
 
+            getChatId(uid1, uid2) {
+                return [uid1, uid2].sort().join("_");
+            }
+
             renderMessage(msg) {
                 const isMe = msg.senderId === State.user.uid;
                 const div = document.createElement('div');
                 div.className = `msg ${isMe ? 'msg-out' : 'msg-in'}`;
-
+                
                 let content = `<span>${msg.text || ''}</span>`;
+                
                 if(msg.type === 'image') {
-                    content = `<img src="${msg.fileUrl}" class="msg-img" onclick="window.open('${msg.fileUrl}')">` + content;
+                    content = `<img src="${msg.fileUrl}" class="msg-img" onclick="window.open('${msg.fileUrl}', '_blank')">` + content;
                 } else if (msg.type === 'file') {
-                    content = `<a href="${msg.fileUrl}" target="_blank" style="color:var(--primary);text-decoration:none;"><i class="fas fa-file"></i> File</a><br>` + content;
+                    content = `<a href="${msg.fileUrl}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fas fa-file"></i> File</a><br>` + content;
                 }
 
                 const date = msg.createdAt ? msg.createdAt.toDate() : new Date();
-                const time = date.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+                const time = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
                 div.innerHTML = `${content} <span class="msg-time">${time}</span>`;
-
+                
                 const area = document.getElementById('messages-area');
                 area.appendChild(div);
                 area.scrollTop = area.scrollHeight;
@@ -467,10 +621,11 @@ const firebaseConfig = {
                 if(!State.activeContact) return;
                 const input = document.getElementById('msg-input');
                 const text = input.value.trim();
-
+                
                 if(!text && !fileData) return;
 
-                const chatId = [State.user.uid, State.activeContact.uid].sort().join("_");
+                const chatId = this.getChatId(State.user.uid, State.activeContact.uid);
+                
                 const payload = {
                     text: text,
                     senderId: State.user.uid,
@@ -478,288 +633,373 @@ const firebaseConfig = {
                     type: fileData ? fileData.type : 'text',
                     fileUrl: fileData ? fileData.url : null
                 };
-                await addDoc(collection(db, "chats", chatId, "messages"), payload);
-                input.value = '';
+
+                try {
+                    await addDoc(collection(db, "chats", chatId, "messages"), payload);
+                    input.value = '';
+                } catch (e) {
+                    console.error("Send error:", e);
+                    App.ui.toast("Failed to send message", "error");
+                }
             }
 
             async handleFileUpload(input) {
                 const file = input.files[0];
                 if(!file) return;
+                
+                App.ui.setLoading(true);
                 App.ui.toast("Uploading...");
+
                 try {
-                    const storageRef = ref(storage, `chat/${Date.now()}_${file.name}`);
+                    const storageRef = ref(storage, `chat/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`);
                     const snap = await uploadBytes(storageRef, file);
                     const url = await getDownloadURL(snap.ref);
                     const type = file.type.startsWith('image/') ? 'image' : 'file';
                     await this.sendMessage({ url, type });
+                    App.ui.toast("File sent!", "success");
                 } catch(e) {
-                    App.ui.toast("Upload failed", 'error');
-                    console.error(e);
+                    console.error("Upload error:", e);
+                    App.ui.toast("Upload failed", "error");
+                } finally {
+                    App.ui.setLoading(false);
+                    input.value = '';
                 }
-                input.value = '';
             }
         }
 
-        // ---------- CALL SERVICE (WebRTC using Firestore signaling) ----------
+        // 🔧 ИСПРАВЛЕНИЕ #5: Полностью переписан CallService
         class CallService {
             constructor() {
-                this.pc = null; // RTCPeerConnection
-                this.localStream = null;
-                this.callDocRef = null;
-                this.incomingListenerUnsub = null;
-                this.candidatesUnsub = null;
-                this.callDocUnsub = null;
+                this.audioCtx = null;
+                this.oscillator = null;
+                this.ringInterval = null;
             }
 
-            async init() {
-                // Listen for incoming calls: documents in webrtcCalls where calleeId == me and status == 'ringing'
-                if(this.incomingListenerUnsub) this.incomingListenerUnsub();
-                const q = query(collection(db, "webrtcCalls"), where("calleeId", "==", State.user.uid), where("status", "==", "ringing"));
-                this.incomingListenerUnsub = onSnapshot(q, snapshot => {
-                    snapshot.docChanges().forEach(change => {
-                        if(change.type === 'added') {
-                            const data = change.doc.data();
-                            // Avoid processing a call initiated by self
-                            if(data.callerId === State.user.uid) return;
-                            // Stash ref
-                            this.callDocRef = change.doc.ref;
-                            // Show incoming UI
-                            const callerName = data.callerNick || 'Unknown';
-                            document.getElementById('caller-name').innerText = callerName;
-                            document.getElementById('caller-avatar').innerText = callerName[0] ? callerName[0].toUpperCase() : '?';
-                            document.getElementById('incoming-modal').classList.add('show');
-                            App.ui.toast("Incoming call from " + callerName);
-                        }
-                    });
+            init() {
+                // Генерация безопасного Peer ID
+                const safeNick = State.user.nickname.replace(/\W/g, '').substring(0, 20);
+                const safeUid = State.user.uid.substring(0, 8);
+                const peerId = `${safeNick}_${safeUid}`;
+                
+                console.log("Initializing PeerJS with ID:", peerId);
+
+                // 🔧 ИСПРАВЛЕНИЕ #6: Добавлены STUN/TURN серверы
+                this.peer = new Peer(peerId, {
+                    config: {
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' },
+                            { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
+                        ]
+                    },
+                    debug: 2 // Включаем дебаг для отладки
                 });
+
+                this.peer.on('open', (id) => {
+                    console.log('✅ Peer connected with ID:', id);
+                    App.ui.toast("Ready for calls", "success");
+                });
+
+                this.peer.on('call', (call) => {
+                    console.log("📞 Incoming call from:", call.peer);
+                    this.handleIncomingCall(call);
+                });
+
+                this.peer.on('error', (err) => {
+                    console.error('❌ PeerJS Error:', err);
+                    App.ui.toast(`Connection Error: ${err.type}`, 'error');
+                    this.endCall();
+                });
+
+                this.peer.on('disconnected', () => {
+                    console.warn("⚠️ Peer disconnected");
+                    App.ui.toast("Connection lost. Reconnecting...", "warning");
+                    this.peer.reconnect();
+                });
+            }
+
+            playRing(type = 'incoming') {
+                if (!this.audioCtx) {
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                this.stopRing();
+
+                this.oscillator = this.audioCtx.createOscillator();
+                const gainNode = this.audioCtx.createGain();
+
+                this.oscillator.connect(gainNode);
+                gainNode.connect(this.audioCtx.destination);
+
+                if (type === 'incoming') {
+                    this.oscillator.type = 'sine';
+                    this.oscillator.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+                    gainNode.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                    
+                    const now = this.audioCtx.currentTime;
+                    gainNode.gain.linearRampToValueAtTime(0.5, now + 0.1);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 2);
+                    
+                    this.oscillator.start(now);
+                    this.oscillator.stop(now + 2);
+                    
+                    this.ringInterval = setInterval(() => {
+                         const osc = this.audioCtx.createOscillator();
+                         const gn = this.audioCtx.createGain();
+                         osc.connect(gn);
+                         gn.connect(this.audioCtx.destination);
+                         osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+                         gn.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                         gn.gain.linearRampToValueAtTime(0.5, this.audioCtx.currentTime + 0.1);
+                         gn.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 2);
+                         osc.start();
+                         osc.stop(this.audioCtx.currentTime + 2);
+                    }, 3000);
+
+                } else if (type === 'dialing') {
+                    this.oscillator.frequency.setValueAtTime(400, this.audioCtx.currentTime);
+                    gainNode.gain.value = 0.1;
+                    this.oscillator.start();
+                }
+            }
+
+            stopRing() {
+                if (this.oscillator) {
+                    try { this.oscillator.stop(); } catch(e){}
+                    this.oscillator = null;
+                }
+                if (this.ringInterval) {
+                    clearInterval(this.ringInterval);
+                    this.ringInterval = null;
+                }
             }
 
             async getStream() {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                    // 🔧 ИСПРАВЛЕНИЕ #7: Улучшено получение видеопотока
+                    const constraints = {
+                        video: {
+                            width: { ideal: 1280, max: 1920 },
+                            height: { ideal: 720, max: 1080 },
+                            facingMode: 'user'
+                        },
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        }
+                    };
+
+                    // Проверяем поддержку getUserMedia
+                    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        throw new Error("Your browser doesn't support camera access");
+                    }
+
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
                     State.localStream = stream;
-                    document.getElementById('local-video').srcObject = stream;
+                    const localVideo = document.getElementById('local-video');
+                    localVideo.srcObject = stream;
+                    
+                    // Обработка ошибок треков
+                    stream.getTracks().forEach(track => {
+                        track.onended = () => {
+                            console.log("Track ended:", track.kind);
+                            if(State.currentCall) {
+                                this.endCall();
+                            }
+                        };
+                    });
+
                     return stream;
                 } catch (e) {
-                    App.ui.toast("Camera / Microphone access denied", 'error');
+                    console.error("Stream error:", e);
+                    let errorMsg = "Camera Access Denied";
+                    if(e.name === 'NotFoundError') errorMsg = "No camera/microphone found";
+                    if(e.name === 'NotAllowedError') errorMsg = "Please allow camera access";
+                    if(e.name === 'OverconstrainedError') errorMsg = "Camera resolution not supported";
+                    
+                    App.ui.toast(errorMsg, 'error');
                     throw e;
                 }
             }
 
-            // create RTCPeerConnection with handlers
-            createPeerConnection(callId, isCaller) {
-                const config = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
-                const pc = new RTCPeerConnection(config);
-                // add tracks
-                if(State.localStream) {
-                    State.localStream.getTracks().forEach(track => pc.addTrack(track, State.localStream));
+            handleIncomingCall(call) {
+                if (State.currentCall) {
+                    console.log("Busy, rejecting call");
+                    call.close(); 
+                    return;
                 }
-                pc.ontrack = (event) => {
-                    console.log('remote track', event);
-                    const remoteVideo = document.getElementById('remote-video');
-                    // Some browsers provide event.streams[0]
-                    if (event.streams && event.streams[0]) {
-                        remoteVideo.srcObject = event.streams[0];
-                    } else {
-                        // fallback: collect tracks
-                        const inboundStream = new MediaStream();
-                        event.track && inboundStream.addTrack(event.track);
-                        remoteVideo.srcObject = inboundStream;
+                
+                this.tempCall = call;
+                
+                // Парсим имя вызывающего
+                const callerRaw = call.peer.split('_')[0] || 'Unknown';
+                document.getElementById('caller-name').innerText = callerRaw;
+                document.getElementById('caller-avatar').innerText = callerRaw[0]?.toUpperCase() || '?';
+                
+                document.getElementById('incoming-modal').classList.add('show');
+                this.playRing('incoming');
+                
+                // Автоотклонение через 30 секунд
+                this.incomingTimeout = setTimeout(() => {
+                    if(this.tempCall) {
+                        this.rejectCall();
+                        App.ui.toast("Call missed", "warning");
                     }
-                    document.getElementById('call-status-text').innerText = 'Connected';
-                    setTimeout(() => document.getElementById('call-status-text').style.display = 'none', 2500);
-                };
-                pc.onicecandidate = async (event) => {
-                    if (!event.candidate) return;
-                    const cand = event.candidate.toJSON();
-                    const subcol = isCaller ? 'callerCandidates' : 'calleeCandidates';
-                    try {
-                        await addDoc(collection(db, "webrtcCalls", callId, subcol), cand);
-                    } catch(e) { console.warn("Candidate write failed", e); }
-                };
-                pc.onconnectionstatechange = () => {
-                    if(pc.connectionState === 'disconnected' || pc.connectionState === 'failed' || pc.connectionState === 'closed') {
-                        this.endCall();
-                    }
-                };
-                return pc;
+                }, 30000);
             }
 
-            // Caller initiates
-            async startCall() {
-                if(!State.activeContact) { App.ui.toast("Select contact first", 'error'); return; }
-                if(State.isCalling) return;
-                const callId = [State.user.uid, State.activeContact.uid].sort().join("_");
-                State.isCalling = true;
-                document.getElementById('call-overlay').classList.add('active');
-                document.getElementById('call-status-text').innerText = "Dialing...";
-                try {
-                    await this.getStream();
-                    // prepare doc
-                    const callDocRef = doc(db, "webrtcCalls", callId);
-                    this.callDocRef = callDocRef;
-
-                    // create pc (caller)
-                    State.localStream = State.localStream;
-                    this.pc = this.createPeerConnection(callId, true);
-
-                    // create offer
-                    const offer = await this.pc.createOffer();
-                    await this.pc.setLocalDescription(offer);
-
-                    // write call doc
-                    await setDoc(callDocRef, {
-                        callerId: State.user.uid,
-                        callerNick: State.user.nickname,
-                        calleeId: State.activeContact.uid,
-                        calleeNick: State.activeContact.nickname,
-                        status: 'ringing',
-                        offer: {
-                            type: offer.type,
-                            sdp: offer.sdp
-                        },
-                        createdAt: serverTimestamp()
-                    });
-
-                    // listen for answer
-                    this.callDocUnsub = onSnapshot(callDocRef, async (snap) => {
-                        const data = snap.data();
-                        if(!data) return;
-                        if(data.answer && !this.pc.remoteDescription) {
-                            const answerDesc = new RTCSessionDescription(data.answer);
-                            await this.pc.setRemoteDescription(answerDesc);
-                        }
-                        if(data.status === 'connected') {
-                            document.getElementById('call-status-text').innerText = 'Connected';
-                        }
-                    });
-
-                    // listen for callee candidates
-                    const calleeCandCol = collection(db, "webrtcCalls", callId, "calleeCandidates");
-                    this.candidatesUnsub = onSnapshot(calleeCandCol, (snap) => {
-                        snap.docChanges().forEach(async change => {
-                            if(change.type === 'added') {
-                                const cand = change.doc.data();
-                                try { await this.pc.addIceCandidate(new RTCIceCandidate(cand)); } catch(e){ console.warn(e); }
-                            }
-                        });
-                    });
-
-                } catch(e) {
-                    console.error(e);
-                    App.ui.toast("Call failed: " + (e.message || e), 'error');
-                    this.endCall();
-                }
-            }
-
-            // Accept incoming
             async acceptCall() {
+                clearTimeout(this.incomingTimeout);
+                this.stopRing();
                 document.getElementById('incoming-modal').classList.remove('show');
-                if(!this.callDocRef) return App.ui.toast("No call to accept", 'error');
-                const callId = this.callDocRef.id;
+                
                 try {
-                    await this.getStream();
-                    this.pc = this.createPeerConnection(callId, false);
-
-                    // fetch call doc
-                    const snap = await getDoc(this.callDocRef);
-                    const data = snap.data();
-                    if(!data || !data.offer) throw new Error("Offer not found");
-
-                    const offerDesc = new RTCSessionDescription(data.offer);
-                    await this.pc.setRemoteDescription(offerDesc);
-
-                    const answer = await this.pc.createAnswer();
-                    await this.pc.setLocalDescription(answer);
-
-                    // set answer & status
-                    await updateDoc(this.callDocRef, {
-                        answer: {
-                            type: answer.type,
-                            sdp: answer.sdp
-                        },
-                        status: 'connected'
-                    });
-
-                    // listen for caller candidates
-                    const callerCandCol = collection(db, "webrtcCalls", callId, "callerCandidates");
-                    this.candidatesUnsub = onSnapshot(callerCandCol, (snap) => {
-                        snap.docChanges().forEach(async change => {
-                            if(change.type === 'added') {
-                                const cand = change.doc.data();
-                                try { await this.pc.addIceCandidate(new RTCIceCandidate(cand)); } catch(e){ console.warn(e); }
-                            }
-                        });
-                    });
-
-                    // show UI
-                    document.getElementById('call-overlay').classList.add('active');
-                    document.getElementById('call-status-text').innerText = 'Connected';
-                } catch(e) {
-                    console.error(e);
-                    App.ui.toast("Cannot accept call: " + (e.message || e), 'error');
+                    const stream = await this.getStream();
+                    this.tempCall.answer(stream);
+                    this.setupCallEvents(this.tempCall);
+                    App.ui.toast("Call accepted", "success");
+                } catch (e) {
+                    console.error("Accept call error:", e);
                     this.rejectCall();
+                    App.ui.toast("Failed to accept call", "error");
                 }
             }
 
             rejectCall() {
+                clearTimeout(this.incomingTimeout);
+                this.stopRing();
                 document.getElementById('incoming-modal').classList.remove('show');
-                // mark doc as rejected or remove
-                if(this.callDocRef) {
-                    updateDoc(this.callDocRef, { status: 'rejected' }).catch(()=>{});
-                    // optional: delete doc
+                if(this.tempCall) {
+                    this.tempCall.close();
+                    this.tempCall = null;
                 }
-                this.cleanupLocal();
-                this.callDocRef = null;
             }
 
-            async endCall() {
-                // close pc
-                if(this.pc) {
-                    try { this.pc.close(); } catch(e) {}
+            async startCall() {
+                if(!State.activeContact) {
+                    App.ui.toast("Select a contact first", "error");
+                    return;
                 }
-                // stop local tracks
-                if(State.localStream) {
-                    State.localStream.getTracks().forEach(t => t.stop());
-                    State.localStream = null;
+                
+                // Генерация Peer ID для вызываемого
+                const targetNick = State.activeContact.nickname.replace(/\W/g, '').substring(0, 20);
+                const targetUid = State.activeContact.uid.substring(0, 8);
+                const targetPeerId = `${targetNick}_${targetUid}`;
+                
+                console.log("Calling peer:", targetPeerId);
+
+                try {
+                    const stream = await this.getStream();
+                    document.getElementById('call-overlay').classList.add('active');
+                    document.getElementById('call-status-text').style.display = 'block';
+                    document.getElementById('call-status-text').innerText = "Dialing...";
+                    this.playRing('dialing');
+
+                    // 🔧 ИСПРАВЛЕНИЕ #8: Добавлен таймаут вызова
+                    const call = this.peer.call(targetPeerId, stream);
+                    
+                    // Таймаут на установку соединения
+                    this.callTimeout = setTimeout(() => {
+                        if(!State.currentCall) {
+                            App.ui.toast("No answer", "warning");
+                            this.endCall();
+                        }
+                    }, 30000);
+
+                    this.setupCallEvents(call);
+
+                } catch(e) {
+                    console.error("Start call error:", e);
+                    App.ui.toast("Failed to start call", "error");
+                    this.endCall();
                 }
-                // UI reset
+            }
+
+            setupCallEvents(call) {
+                State.currentCall = call;
+                State.callStartTime = Date.now();
+                
+                call.on('stream', (remoteStream) => {
+                    clearTimeout(this.callTimeout);
+                    this.stopRing();
+                    document.getElementById('call-status-text').innerText = "Connected";
+                    setTimeout(() => document.getElementById('call-status-text').style.display = 'none', 2000);
+                    
+                    const remoteVideo = document.getElementById('remote-video');
+                    remoteVideo.srcObject = remoteStream;
+                    
+                    // Обработка ошибок удаленного потока
+                    remoteStream.getTracks().forEach(track => {
+                        track.onended = () => {
+                            console.log("Remote track ended");
+                            this.endCall();
+                        };
+                    });
+                });
+
+                call.on('close', () => {
+                    console.log("Call closed");
+                    this.endCall();
+                });
+
+                call.on('error', (err) => {
+                    console.error("Call error:", err);
+                    App.ui.toast("Call error occurred", "error");
+                    this.endCall();
+                });
+
+                // ICE candidate handling
+                if(call.peerConnection) {
+                    call.peerConnection.oniceconnectionstatechange = () => {
+                        console.log("ICE state:", call.peerConnection.iceConnectionState);
+                        if(call.peerConnection.iceConnectionState === 'failed' || 
+                           call.peerConnection.iceConnectionState === 'disconnected') {
+                            App.ui.toast("Connection unstable", "warning");
+                        }
+                    };
+                }
+            }
+
+            endCall() {
+                clearTimeout(this.callTimeout);
+                clearTimeout(this.incomingTimeout);
+                this.stopRing();
+                
+                if (State.currentCall) {
+                    State.currentCall.close();
+                    State.currentCall = null;
+                }
+                
+                if (State.localStream) {
+                    State.localStream.getTracks().forEach(t => {
+                        try {
+                            t.stop();
+                        } catch(e) {
+                            console.log("Error stopping track:", e);
+                        }
+                    });
+                }
+                
+                State.localStream = null;
+                State.callStartTime = null;
+                
                 document.getElementById('call-overlay').classList.remove('active');
                 document.getElementById('remote-video').srcObject = null;
                 document.getElementById('local-video').srcObject = null;
                 document.getElementById('call-status-text').style.display = 'block';
-                document.getElementById('call-status-text').innerText = 'Disconnected';
-
-                // delete call doc + subcollections (best-effort)
-                if(this.callDocRef) {
-                    const callId = this.callDocRef.id;
-                    // remove subcollections documents
-                    const removeSub = async (sub) => {
-                        try {
-                            const snap = await getDocs(collection(db, "webrtcCalls", callId, sub));
-                            for (const d of snap.docs) {
-                                await deleteDoc(doc(db, "webrtcCalls", callId, sub, d.id));
-                            }
-                        } catch(e) { /* ignore */ }
-                    };
-                    await removeSub('callerCandidates').catch(()=>{});
-                    await removeSub('calleeCandidates').catch(()=>{});
-                    try { await deleteDoc(this.callDocRef); } catch(e){ /* ignore */ }
-                    this.callDocRef = null;
-                }
-
-                // unsubscribe listeners
-                if(this.callDocUnsub) { this.callDocUnsub(); this.callDocUnsub = null; }
-                if(this.candidatesUnsub) { this.candidatesUnsub(); this.candidatesUnsub = null; }
-
-                State.isCalling = false;
-                this.pc = null;
+                
+                // Сброс кнопок управления
+                document.getElementById('btn-mute').style.background = 'rgba(255,255,255,0.2)';
+                document.getElementById('btn-mute').innerHTML = '<i class="fas fa-microphone"></i>';
+                document.getElementById('btn-cam').style.background = 'rgba(255,255,255,0.2)';
+                document.getElementById('btn-cam').innerHTML = '<i class="fas fa-video"></i>';
             }
 
             toggleAudio() {
                 if(!State.localStream) return;
                 const track = State.localStream.getAudioTracks()[0];
                 if(!track) return;
+                
                 track.enabled = !track.enabled;
                 const btn = document.getElementById('btn-mute');
                 btn.style.background = track.enabled ? 'rgba(255,255,255,0.2)' : 'var(--danger)';
@@ -770,6 +1010,7 @@ const firebaseConfig = {
                 if(!State.localStream) return;
                 const track = State.localStream.getVideoTracks()[0];
                 if(!track) return;
+                
                 track.enabled = !track.enabled;
                 const btn = document.getElementById('btn-cam');
                 btn.style.background = track.enabled ? 'rgba(255,255,255,0.2)' : 'var(--danger)';
@@ -777,75 +1018,76 @@ const firebaseConfig = {
             }
 
             async flipCamera() {
-                // attempt facingMode toggle
-                if(!State.localStream) return App.ui.toast("No local stream", 'error');
-                const videoTrack = State.localStream.getVideoTracks()[0];
-                if(!videoTrack) return App.ui.toast("No video track", 'error');
-                const settings = videoTrack.getSettings();
-                const currentMode = settings.facingMode || 'user';
+                if(!State.localStream) return;
+                
+                const currentTrack = State.localStream.getVideoTracks()[0];
+                const currentSettings = currentTrack?.getSettings() || {};
+                const currentMode = currentSettings.facingMode || 'user';
                 const newMode = currentMode === 'user' ? 'environment' : 'user';
+                
                 try {
-                    const newStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: newMode }, audio: true });
-                    // replace tracks
-                    const newVideoTrack = newStream.getVideoTracks()[0];
-                    if(this.pc) {
-                        const sender = this.pc.getSenders().find(s => s.track && s.track.kind === 'video');
-                        if(sender) await sender.replaceTrack(newVideoTrack);
+                    const newStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: newMode },
+                        audio: true
+                    });
+                    
+                    const videoTrack = newStream.getVideoTracks()[0];
+                    
+                    // Заменяем трек в соединении
+                    if(State.currentCall && State.currentCall.peerConnection) {
+                        const sender = State.currentCall.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+                        if(sender) {
+                            await sender.replaceTrack(videoTrack);
+                        }
                     }
-                    // update local
+                    
+                    document.getElementById('local-video').srcObject = newStream;
                     State.localStream.getTracks().forEach(t => t.stop());
                     State.localStream = newStream;
-                    document.getElementById('local-video').srcObject = newStream;
+                    
                 } catch(e) {
-                    App.ui.toast("Cannot switch camera", 'error');
+                    console.error("Camera switch error:", e);
+                    App.ui.toast("Cannot switch camera", "error");
                 }
-            }
-
-            cleanupLocal() {
-                if(State.localStream) {
-                    State.localStream.getTracks().forEach(t => t.stop());
-                }
-                State.localStream = null;
-                if(this.pc) { try { this.pc.close(); } catch(e){} this.pc = null; }
             }
         }
 
-        // ---------- APP INIT ----------
+        // Главное приложение
         const App = {
             auth: new AuthService(),
             chat: new ChatService(),
             call: new CallService(),
             ui: new UIManager(),
-            contacts: new ChatService()
+            contacts: null // Будет установлено ниже
         };
+        App.contacts = App.chat; // Переиспользуем ChatService
 
         window.App = App;
 
-        // Auth state
+        // Firebase Auth Listener
         onAuthStateChanged(auth, async (user) => {
-            if(user) {
+            if (user) {
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if(userDoc.exists()) {
                         State.user = userDoc.data();
                         App.ui.showApp();
-                        App.chat.loadContacts();
+                        await App.chat.loadContacts();
                         App.call.init();
                         App.ui.initTheme();
                     } else {
-                        // If doc missing, create minimal
-                        const nick = user.displayName || user.email.split('@')[0];
-                        await setDoc(doc(db, "users", user.uid), { uid: user.uid, nickname: nick, contacts: [], createdAt: serverTimestamp() });
-                        const udoc = await getDoc(doc(db, "users", user.uid));
-                        State.user = udoc.data();
-                        App.ui.showApp();
-                        App.chat.loadContacts();
-                        App.call.init();
-                        App.ui.initTheme();
+                        // Если документ пользователя не найден, создаем его
+                        await setDoc(doc(db, "users", user.uid), {
+                            uid: user.uid,
+                            nickname: user.displayName || "User",
+                            contacts: [],
+                            createdAt: serverTimestamp()
+                        });
+                        window.location.reload();
                     }
-                } catch(e) {
-                    console.error(e);
-                    App.ui.toast("Error loading profile", 'error');
+                } catch (e) {
+                    console.error("Auth state error:", e);
+                    App.ui.toast("Error loading user data", "error");
                 }
             } else {
                 State.user = null;
@@ -853,20 +1095,12 @@ const firebaseConfig = {
             }
         });
 
-        // Expose accept/reject for incoming modal buttons
-        window.addEventListener('DOMContentLoaded', () => {
-            // Hook local-video muted autoplay assignment
-            const localVideo = document.getElementById('local-video');
-            const remoteVideo = document.getElementById('remote-video');
-            // Reflect MediaStream to local video when available
-            const obs = new MutationObserver(() => {
-                if(State.localStream) localVideo.srcObject = State.localStream;
-            });
-            obs.observe(localVideo, { attributes: true, childList: true, subtree: true });
+        // 🔧 ИСПРАВЛЕНИЕ #9: Проверка поддержки WebRTC
+        window.addEventListener('load', () => {
+            if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                App.ui.toast("Your browser doesn't support video calls", "error");
+            }
         });
-
-        // Small helper: ensure Firestore subdocs getDocs/deleteDoc used in endCall cleanup (quiet)
-        import { getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
     </script>
 </body>
 </html>
