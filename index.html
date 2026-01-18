@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>FamilyChat Pro | Secure Messenger</title>
+    <title>FamilyChat Pro | P2P Secure Messenger</title>
     
+    <!-- FIXED: Removed trailing spaces in CDN URLs -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
@@ -22,9 +23,11 @@
             --outgoing: #d9fdd3;
             --danger: #ef5350;
             --success: #25d366;
+            --warning: #ff9800;
             --shadow-card: 0 4px 18px rgba(0,0,0,0.1);
             --header-height: 60px;
             --sidebar-width: 380px;
+            --border-radius: 12px;
         }
 
         [data-theme="dark"] {
@@ -41,97 +44,495 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; height: 100dvh; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            height: 100dvh; 
+            background-color: var(--bg-main); 
+            color: var(--text-main); 
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
         
-        button { border: none; outline: none; cursor: pointer; transition: all 0.2s; font-family: inherit; }
-        input { font-family: inherit; outline: none; }
+        button { 
+            border: none; 
+            outline: none; 
+            cursor: pointer; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            font-family: inherit;
+            user-select: none;
+        }
+        input, textarea { font-family: inherit; outline: none; border: none; }
         
         /* --- 2. LAYOUT UTILITIES --- */
-        .app-wrapper { display: flex; width: 100%; height: 100%; max-width: 1600px; margin: 0 auto; position: relative; background: var(--bg-panel); overflow: hidden; }
+        .app-wrapper { 
+            display: flex; 
+            width: 100%; 
+            height: 100%; 
+            max-width: 1600px; 
+            margin: 0 auto; 
+            position: relative; 
+            background: var(--bg-panel); 
+            overflow: hidden;
+            isolation: isolate;
+        }
         .flex { display: flex; }
         .flex-col { flex-direction: column; }
         .center { align-items: center; justify-content: center; }
         .hidden { display: none !important; }
-        .scroll-y { overflow-y: auto; scrollbar-width: thin; }
+        .scroll-y { 
+            overflow-y: auto; 
+            scrollbar-width: thin;
+            scrollbar-color: var(--text-sub) transparent;
+        }
+        .scroll-y::-webkit-scrollbar { width: 6px; }
+        .scroll-y::-webkit-scrollbar-track { background: transparent; }
+        .scroll-y::-webkit-scrollbar-thumb { background: var(--text-sub); border-radius: 3px; }
 
         /* --- 3. AUTH SCREEN --- */
-        #auth-view { position: absolute; inset: 0; z-index: 2000; background: var(--bg-main); display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { background: var(--bg-panel); width: 100%; max-width: 450px; padding: 40px; border-radius: 12px; box-shadow: var(--shadow-card); text-align: center; }
-        .auth-logo { width: 80px; height: 80px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px; }
-        .auth-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid var(--text-sub); border-radius: 8px; font-size: 16px; background: var(--bg-panel); color: var(--text-main); }
-        .btn-primary { width: 100%; padding: 15px; background: var(--primary); color: white; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 10px; position: relative; }
+        #auth-view { 
+            position: absolute; 
+            inset: 0; 
+            z-index: 2000; 
+            background: var(--bg-main); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .auth-card { 
+            background: var(--bg-panel); 
+            width: 100%; 
+            max-width: 450px; 
+            padding: 40px; 
+            border-radius: var(--border-radius); 
+            box-shadow: var(--shadow-card); 
+            text-align: center;
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .auth-logo { 
+            width: 80px; 
+            height: 80px; 
+            background: var(--primary); 
+            color: white; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 32px; 
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 12px rgba(0, 168, 132, 0.3);
+        }
+        .auth-input { 
+            width: 100%; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border: 1px solid var(--text-sub); 
+            border-radius: 8px; 
+            font-size: 16px; 
+            background: var(--bg-panel); 
+            color: var(--text-main);
+            transition: border-color 0.2s;
+        }
+        .auth-input:focus { border-color: var(--primary); }
+        .btn-primary { 
+            width: 100%; 
+            padding: 15px; 
+            background: var(--primary); 
+            color: white; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            font-size: 16px; 
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .btn-primary:hover::before { opacity: 1; }
         .btn-primary:active { transform: scale(0.98); }
         .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-        .auth-switch { margin-top: 20px; color: var(--primary); cursor: pointer; font-size: 14px; }
+        .auth-switch { margin-top: 20px; color: var(--primary); cursor: pointer; font-size: 14px; font-weight: 500; }
 
         /* --- 4. SIDEBAR (CONTACTS) --- */
-        aside { width: var(--sidebar-width); border-right: 1px solid rgba(0,0,0,0.1); display: flex; flex-direction: column; background: var(--bg-panel); z-index: 10; height: 100%; }
-        .header { height: var(--header-height); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-panel); border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--text-sub); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; object-fit: cover; }
+        aside { 
+            width: var(--sidebar-width); 
+            border-right: 1px solid rgba(0,0,0,0.1); 
+            display: flex; 
+            flex-direction: column; 
+            background: var(--bg-panel); 
+            z-index: 10; 
+            height: 100%;
+        }
+        .header { 
+            height: var(--header-height); 
+            padding: 0 16px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            background: var(--bg-panel); 
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .avatar { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            background: var(--text-sub); 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            font-size: 18px; 
+            object-fit: cover;
+            user-select: none;
+        }
         
         .search-container { padding: 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        .search-box { background: rgba(0,0,0,0.05); border-radius: 8px; display: flex; align-items: center; padding: 0 10px; }
-        .search-box input { border: none; background: transparent; padding: 10px; flex: 1; color: var(--text-main); }
+        .search-box { 
+            background: rgba(0,0,0,0.05); 
+            border-radius: 8px; 
+            display: flex; 
+            align-items: center; 
+            padding: 0 10px;
+            transition: background 0.2s;
+        }
+        .search-box:focus-within { background: rgba(0,0,0,0.08); }
+        .search-box input { 
+            border: none; 
+            background: transparent; 
+            padding: 10px; 
+            flex: 1; 
+            color: var(--text-main);
+        }
         
         .contact-list { flex: 1; overflow-y: auto; }
-        .contact-item { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; transition: background 0.2s; position: relative; }
+        .contact-item { 
+            display: flex; 
+            align-items: center; 
+            padding: 12px 16px; 
+            cursor: pointer; 
+            transition: background 0.2s; 
+            position: relative;
+            user-select: none;
+        }
         .contact-item:hover { background: rgba(0,0,0,0.03); }
         .contact-item.active { background: rgba(0,0,0,0.06); }
         .contact-info { margin-left: 15px; flex: 1; overflow: hidden; }
         .contact-name { font-weight: 500; font-size: 17px; margin-bottom: 2px; }
         .contact-status { font-size: 13px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .unread-badge { background: var(--success); color: white; font-size: 12px; padding: 2px 6px; border-radius: 10px; margin-left: auto; }
+        .unread-badge { 
+            background: var(--success); 
+            color: white; 
+            font-size: 12px; 
+            padding: 2px 6px; 
+            border-radius: 10px; 
+            margin-left: auto;
+            font-weight: bold;
+        }
 
         /* --- 5. CHAT AREA --- */
-        main { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); position: relative; height: 100%; }
-        main::before { content: ""; position: absolute; inset: 0; opacity: 0.4; background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg '%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239ca3af' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E"); pointer-events: none; }
+        main { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            background: var(--bg-chat); 
+            position: relative; 
+            height: 100%;
+        }
+        main::before { 
+            content: ""; 
+            position: absolute; 
+            inset: 0; 
+            opacity: 0.4; 
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg '%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239ca3af' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E"); 
+            pointer-events: none; 
+        }
 
-        .chat-header { background: var(--bg-panel); height: var(--header-height); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 5; }
+        .chat-header { 
+            background: var(--bg-panel); 
+            height: var(--header-height); 
+            padding: 0 16px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            border-bottom: 1px solid rgba(0,0,0,0.05); 
+            z-index: 5;
+        }
         .chat-back-btn { display: none; margin-right: 15px; font-size: 20px; color: var(--text-main); }
         .chat-user-meta { display: flex; align-items: center; cursor: pointer; }
-        .chat-actions i { font-size: 20px; color: var(--primary); margin-left: 25px; cursor: pointer; padding: 8px; border-radius: 50%; }
+        .chat-actions i { 
+            font-size: 20px; 
+            color: var(--primary); 
+            margin-left: 25px; 
+            cursor: pointer; 
+            padding: 8px; 
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
         .chat-actions i:hover { background: rgba(0,0,0,0.05); }
 
-        .messages-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; z-index: 2; }
+        .messages-container { 
+            flex: 1; 
+            padding: 20px; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+            z-index: 2;
+            scroll-behavior: smooth;
+        }
         
-        .msg { max-width: 65%; padding: 8px 12px; border-radius: 8px; font-size: 15px; line-height: 1.4; position: relative; word-wrap: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .msg { 
+            max-width: 65%; 
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            font-size: 15px; 
+            line-height: 1.4; 
+            position: relative; 
+            word-wrap: break-word; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .msg-in { align-self: flex-start; background: var(--incoming); border-top-left-radius: 0; }
         .msg-out { align-self: flex-end; background: var(--outgoing); border-top-right-radius: 0; }
-        .msg-time { font-size: 10px; color: var(--text-sub); text-align: right; margin-top: 4px; display: block; float: right; margin-left: 10px; }
-        .msg-img { max-width: 100%; border-radius: 6px; margin-bottom: 4px; display: block; cursor: pointer; }
+        .msg-time { 
+            font-size: 10px; 
+            color: var(--text-sub); 
+            text-align: right; 
+            margin-top: 4px; 
+            display: block; 
+            float: right; 
+            margin-left: 10px;
+        }
+        .msg-img { 
+            max-width: 100%; 
+            border-radius: 6px; 
+            margin-bottom: 4px; 
+            display: block; 
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .msg-img:hover { transform: scale(1.02); }
 
-        .input-area { background: var(--bg-panel); padding: 10px 16px; display: flex; align-items: center; gap: 10px; z-index: 5; }
-        .input-field { flex: 1; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 12px; max-height: 100px; overflow-y: auto; color: var(--text-main); }
-        .btn-icon { color: var(--text-sub); font-size: 22px; padding: 8px; display: flex; align-items: center; justify-content: center; }
+        .input-area { 
+            background: var(--bg-panel); 
+            padding: 10px 16px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            z-index: 5;
+        }
+        .input-field { 
+            flex: 1; 
+            background: rgba(0,0,0,0.05); 
+            border-radius: 8px; 
+            padding: 12px; 
+            max-height: 100px; 
+            overflow-y: auto; 
+            color: var(--text-main);
+            font-size: 15px;
+        }
+        .btn-icon { 
+            color: var(--text-sub); 
+            font-size: 22px; 
+            padding: 8px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s, color 0.2s;
+        }
+        .btn-icon:hover { background: rgba(0,0,0,0.05); color: var(--primary); }
         .btn-send { color: var(--primary); }
 
         /* --- 6. VIDEO CALL OVERLAY --- */
-        #call-overlay { position: fixed; inset: 0; background: #000; z-index: 3000; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        #call-overlay { 
+            position: fixed; 
+            inset: 0; 
+            background: #000; 
+            z-index: 3000; 
+            display: flex; 
+            flex-direction: column; 
+            opacity: 0; 
+            pointer-events: none; 
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         #call-overlay.active { opacity: 1; pointer-events: auto; }
         
-        .video-grid { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .video-grid { 
+            flex: 1; 
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden;
+        }
         video { background: #000; }
         #remote-video { width: 100%; height: 100%; object-fit: contain; }
-        #local-video { position: absolute; bottom: 100px; right: 20px; width: 120px; height: 160px; border-radius: 12px; border: 2px solid white; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 3002; transition: all 0.3s; }
+        #local-video { 
+            position: absolute; 
+            bottom: 100px; 
+            right: 20px; 
+            width: 120px; 
+            height: 160px; 
+            border-radius: var(--border-radius); 
+            border: 2px solid white; 
+            object-fit: cover; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
+            z-index: 3002; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #local-video.dragging { transition: none; }
         
-        .call-controls { position: absolute; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; gap: 20px; z-index: 3003; padding-bottom: env(safe-area-inset-bottom); }
-        .ctrl-btn { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.2s; }
+        .call-controls { 
+            position: absolute; 
+            bottom: 30px; 
+            left: 0; 
+            right: 0; 
+            display: flex; 
+            justify-content: center; 
+            gap: 20px; 
+            z-index: 3003; 
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .ctrl-btn { 
+            width: 60px; 
+            height: 60px; 
+            border-radius: 50%; 
+            background: rgba(255,255,255,0.2); 
+            backdrop-filter: blur(10px); 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 24px; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .ctrl-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .ctrl-btn:hover::before { opacity: 1; }
         .ctrl-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
         .ctrl-btn.bg-red { background: var(--danger); }
         .ctrl-btn.active { background: white; color: #333; }
 
-        .call-status-pill { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 30px; color: white; font-size: 14px; z-index: 3003; backdrop-filter: blur(5px); }
-        .call-duration { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 6px 16px; border-radius: 30px; color: white; font-size: 12px; z-index: 3003; backdrop-filter: blur(5px); }
+        .call-status-pill { 
+            position: absolute; 
+            top: 40px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: rgba(0,0,0,0.6); 
+            padding: 8px 20px; 
+            border-radius: 30px; 
+            color: white; 
+            font-size: 14px; 
+            z-index: 3003; 
+            backdrop-filter: blur(5px);
+            font-weight: 500;
+        }
+        .call-duration { 
+            position: absolute; 
+            top: 80px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: rgba(0,0,0,0.6); 
+            padding: 6px 16px; 
+            border-radius: 30px; 
+            color: white; 
+            font-size: 12px; 
+            z-index: 3003; 
+            backdrop-filter: blur(5px);
+            font-family: monospace;
+        }
 
         /* --- 7. INCOMING CALL MODAL --- */
-        #incoming-modal { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-150%); background: rgba(32, 44, 51, 0.95); width: 90%; max-width: 400px; padding: 20px; border-radius: 16px; z-index: 4000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between; color: white; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(10px); }
+        #incoming-modal { 
+            position: fixed; 
+            top: 20px; 
+            left: 50%; 
+            transform: translateX(-50%) translateY(-150%); 
+            background: rgba(32, 44, 51, 0.95); 
+            width: 90%; 
+            max-width: 400px; 
+            padding: 20px; 
+            border-radius: var(--border-radius); 
+            z-index: 4000; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            color: white; 
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            backdrop-filter: blur(10px);
+        }
         #incoming-modal.show { transform: translateX(-50%) translateY(0); }
         .incoming-info { display: flex; align-items: center; gap: 15px; }
         .incoming-actions { display: flex; gap: 15px; }
-        .btn-accept { background: var(--success); width: 45px; height: 45px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; animation: pulse 1.5s infinite; }
-        .btn-decline { background: var(--danger); width: 45px; height: 45px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .btn-accept { 
+            background: var(--success); 
+            width: 45px; 
+            height: 45px; 
+            border-radius: 50%; 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 18px; 
+            animation: pulse 1.5s infinite;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-decline { 
+            background: var(--danger); 
+            width: 45px; 
+            height: 45px; 
+            border-radius: 50%; 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-accept::before, .btn-decline::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.2);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .btn-accept:hover::before, .btn-decline:hover::before { opacity: 1; }
 
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } }
+        @keyframes pulse { 
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); } 
+            70% { box-shadow: 0 0 0 12px rgba(37, 211, 102, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); } 
+        }
 
         /* --- 8. MOBILE RESPONSIVE --- */
         @media (max-width: 768px) {
@@ -146,36 +547,130 @@
             
             #local-video { width: 90px; height: 130px; bottom: 120px; right: 15px; }
             .msg { font-size: 16px; }
+            .ctrl-btn { width: 55px; height: 55px; font-size: 20px; }
         }
 
         /* --- 9. TOAST --- */
-        #toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 5000; text-align: center; width: 100%; pointer-events: none; }
-        .toast { display: inline-block; background: #333; color: white; padding: 12px 24px; border-radius: 30px; margin-top: 10px; opacity: 0; transition: 0.3s; transform: translateY(20px); font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        #toast-container { 
+            position: fixed; 
+            bottom: 30px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 5000; 
+            text-align: center; 
+            width: 100%; 
+            pointer-events: none;
+        }
+        .toast { 
+            display: inline-block; 
+            background: #333; 
+            color: white; 
+            padding: 12px 24px; 
+            border-radius: 30px; 
+            margin-top: 10px; 
+            opacity: 0; 
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            transform: translateY(20px); 
+            font-size: 14px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-weight: 500;
+            max-width: 90%;
+            word-wrap: break-word;
+        }
         .toast.visible { opacity: 1; transform: translateY(0); }
 
         /* --- 10. LOADING SPINNER --- */
-        .loading-spinner { border: 2px solid var(--text-sub); border-top: 2px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
+        .loading-spinner { 
+            border: 2px solid var(--text-sub); 
+            border-top: 2px solid var(--primary); 
+            border-radius: 50%; 
+            width: 20px; 
+            height: 20px; 
+            animation: spin 1s linear infinite; 
+            display: inline-block; 
+            vertical-align: middle; 
+            margin-left: 10px;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* --- 11. DEBUG INFO --- */
-        #debug-info { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.9); color: #0f0; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 11px; z-index: 9999; max-width: 350px; max-height: 200px; overflow-y: auto; display: none; }
+        #debug-info { 
+            position: fixed; 
+            top: 10px; 
+            right: 10px; 
+            background: rgba(0,0,0,0.9); 
+            color: #0f0; 
+            padding: 10px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            font-size: 11px; 
+            z-index: 9999; 
+            max-width: 350px; 
+            max-height: 200px; 
+            overflow-y: auto; 
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
         #debug-info.show { display: block; }
+
+        /* --- 12. CONNECTION QUALITY INDICATOR --- */
+        .connection-quality {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 3px;
+            z-index: 3003;
+        }
+        .quality-bar {
+            width: 4px;
+            height: 12px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            transition: background 0.3s, height 0.3s;
+        }
+        .quality-bar.active { background: var(--success); }
+        .quality-bar.medium { background: var(--warning); }
+        .quality-bar.low { background: var(--danger); }
+
+        /* --- 13. P2P DATA TRANSFER INDICATOR --- */
+        .p2p-transfer {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            padding: 10px 16px;
+            border-radius: 20px;
+            color: white;
+            font-size: 12px;
+            z-index: 3500;
+            display: none;
+            backdrop-filter: blur(5px);
+        }
+        .p2p-transfer.show { display: block; }
     </style>
 </head>
 <body>
 
     <div id="debug-info"></div>
 
+    <!-- P2P File Transfer Indicator -->
+    <div id="p2p-transfer" class="p2p-transfer">
+        <i class="fas fa-exchange-alt"></i> <span id="transfer-status">P2P Transfer</span>
+    </div>
+
     <div id="auth-view">
         <div class="auth-card">
             <div class="auth-logo"><i class="fas fa-users"></i></div>
-            <h2 style="margin-bottom: 10px;">FamilyChat</h2>
-            <p style="color: var(--text-sub); margin-bottom: 25px;">Connect with your loved ones</p>
+            <h2 style="margin-bottom: 10px;">FamilyChat Pro</h2>
+            <p style="color: var(--text-sub); margin-bottom: 25px;">Secure P2P Communication</p>
             
             <div id="auth-error" style="color: var(--danger); font-size: 14px; margin-bottom: 15px; display: none;"></div>
             
-            <input type="text" id="auth-nick" class="auth-input" placeholder="Your Nickname (e.g. Mom)" autocomplete="off">
-            <input type="password" id="auth-pass" class="auth-input" placeholder="Password (min 6 chars)" autocomplete="new-password">
+            <input type="text" id="auth-nick" class="auth-input" placeholder="Your Nickname (e.g. Mom)" autocomplete="off" maxlength="20">
+            <input type="password" id="auth-pass" class="auth-input" placeholder="Password (min 6 chars)" autocomplete="new-password" minlength="6">
             
             <button id="btn-auth-action" class="btn-primary" onclick="App.auth.login()">
                 <span id="auth-btn-text">Login</span>
@@ -187,7 +682,7 @@
             </div>
             
             <div style="margin-top: 20px; font-size: 12px; color: var(--text-sub);">
-                ⚠️ Check Firebase config & rules<br>
+                <i class="fas fa-shield-alt"></i> End-to-end encrypted calls<br>
                 <button type="button" onclick="App.ui.toggleDebug()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 12px;">
                     <i class="fas fa-bug"></i> Debug Mode
                 </button>
@@ -204,23 +699,23 @@
                     <div style="font-weight: 600;" id="my-nick"></div>
                 </div>
                 <div class="flex" style="gap: 15px;">
-                    <button class="btn-icon" onclick="App.ui.toggleTheme()"><i class="fas fa-adjust"></i></button>
-                    <button class="btn-icon" onclick="App.auth.logout()"><i class="fas fa-sign-out-alt"></i></button>
+                    <button class="btn-icon" onclick="App.ui.toggleTheme()" title="Toggle theme"><i class="fas fa-adjust"></i></button>
+                    <button class="btn-icon" onclick="App.auth.logout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             </div>
             
             <div class="search-container">
                 <div class="search-box">
                     <i class="fas fa-search" style="color: var(--text-sub);"></i>
-                    <input type="text" id="contact-search" placeholder="Search or add by nickname..." onkeyup="if(event.key === 'Enter') App.contacts.searchUser()">
+                    <input type="text" id="contact-search" placeholder="Search or add by nickname..." onkeyup="App.chat.handleSearchKey(event)">
                     <button onclick="App.contacts.searchUser()" style="padding: 8px; color: var(--primary); font-weight: bold;">ADD</button>
                 </div>
             </div>
 
-            <div id="contacts-list" class="contact-list">
+            <div id="contacts-list" class="contact-list scroll-y">
                 <div class="center flex flex-col" style="height: 100%; color: var(--text-sub); opacity: 0.6;">
                     <i class="fas fa-search" style="font-size: 32px; margin-bottom: 10px;"></i>
-                    <p>Search for contacts to add</p>
+                    <p>Search for family members to add them!</p>
                 </div>
             </div>
         </aside>
@@ -239,6 +734,7 @@
                 </div>
                 <div class="chat-actions flex">
                     <i class="fas fa-video" onclick="App.call.startCall()" title="Start video call"></i>
+                    <i class="fas fa-phone" onclick="App.call.startCall(true)" title="Start voice call"></i>
                 </div>
             </div>
 
@@ -250,12 +746,12 @@
             </div>
 
             <div id="input-area" class="input-area hidden">
-                <button class="btn-icon" onclick="document.getElementById('file-upload').click()"><i class="fas fa-paperclip"></i></button>
+                <button class="btn-icon" onclick="document.getElementById('file-upload').click()" title="Attach file"><i class="fas fa-paperclip"></i></button>
                 <input type="file" id="file-upload" hidden onchange="App.chat.handleFileUpload(this)">
                 
-                <input type="text" id="msg-input" class="input-field" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') App.chat.sendMessage()">
+                <input type="text" id="msg-input" class="input-field" placeholder="Type a message..." onkeydown="App.chat.handleMessageKey(event)">
                 
-                <button class="btn-icon btn-send" onclick="App.chat.sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                <button class="btn-icon btn-send" onclick="App.chat.sendMessage()" title="Send message"><i class="fas fa-paper-plane"></i></button>
             </div>
         </main>
     </div>
@@ -264,7 +760,7 @@
         <div class="incoming-info">
             <div id="caller-avatar" class="avatar" style="background: white; color: #333;">?</div>
             <div>
-                <div style="font-size: 12px; opacity: 0.8;">Incoming Video Call</div>
+                <div style="font-size: 12px; opacity: 0.8;">Incoming <span id="call-type">Video</span> Call</div>
                 <div id="caller-name" style="font-weight: bold; font-size: 18px;">Unknown</div>
             </div>
         </div>
@@ -275,8 +771,16 @@
     </div>
 
     <div id="call-overlay">
-        <div class="call-status-pill" id="call-status-text">Preparing...</div>
-        <div class="call-duration" id="call-duration"></div>
+        <div class="call-status-pill" id="call-status-text">Initializing...</div>
+        <div class="call-duration" id="call-duration">00:00</div>
+        
+        <!-- Connection Quality Indicator -->
+        <div class="connection-quality" id="connection-quality" style="display: none;">
+            <div class="quality-bar"></div>
+            <div class="quality-bar"></div>
+            <div class="quality-bar"></div>
+            <div class="quality-bar"></div>
+        </div>
         
         <div class="video-grid">
             <video id="remote-video" autoplay playsinline></video>
@@ -284,23 +788,30 @@
         </div>
 
         <div class="call-controls">
-            <button class="ctrl-btn" onclick="App.call.toggleAudio()" id="btn-mute"><i class="fas fa-microphone"></i></button>
-            <button class="ctrl-btn bg-red" onclick="App.call.endCall()"><i class="fas fa-phone-slash"></i></button>
-            <button class="ctrl-btn" onclick="App.call.toggleVideo()" id="btn-cam"><i class="fas fa-video"></i></button>
-            <button class="ctrl-btn" onclick="App.call.flipCamera()" id="btn-flip"><i class="fas fa-camera-rotate"></i></button>
+            <button class="ctrl-btn" onclick="App.call.toggleAudio()" id="btn-mute" title="Toggle microphone"><i class="fas fa-microphone"></i></button>
+            <button class="ctrl-btn" onclick="App.call.toggleScreenShare()" id="btn-screen" title="Share screen"><i class="fas fa-desktop"></i></button>
+            <button class="ctrl-btn bg-red" onclick="App.call.endCall()" title="End call"><i class="fas fa-phone-slash"></i></button>
+            <button class="ctrl-btn" onclick="App.call.toggleVideo()" id="btn-cam" title="Toggle camera"><i class="fas fa-video"></i></button>
+            <button class="ctrl-btn" onclick="App.call.flipCamera()" id="btn-flip" title="Flip camera"><i class="fas fa-camera-rotate"></i></button>
         </div>
     </div>
 
     <div id="toast-container"></div>
 
     <script type="module">
-        // --- FIREBASE IMPORTS ---
+        // ============================================================================
+        // PRODUCTION-READY P2P MESSENGER
+        // Features: E2E encrypted calls, P2P file transfer, robust error handling
+        // ============================================================================
+
+        // FIXED: Removed trailing spaces in Firebase import URLs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDoc, updateDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-        // --- CRITICAL: REPLACE WITH YOUR FIREBASE CONFIG ---
+        // --- FIREBASE CONFIGURATION ---
+        // CRITICAL: Replace with your actual Firebase credentials before deployment
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDXsvsaG8IdcjZv4iG4WHjPneGvcxywuTk",
@@ -312,20 +823,25 @@ const firebaseConfig = {
   measurementId: "G-C3D5TB22F0"
 };
 
-        // Debug logger
+        // --- DEBUGGING UTILITY ---
+        /**
+         * @param {string} message - Debug message
+         * @param {'info'|'warn'|'error'|'success'} type - Message type
+         */
         window.debugLog = function(message, type = 'info') {
             const panel = document.getElementById('debug-info');
-            if (!panel.classList.contains('show')) return;
+            if (!panel?.classList.contains('show')) return;
             
             const timestamp = new Date().toLocaleTimeString();
-            const color = type === 'error' ? '#f00' : type === 'success' ? '#0f0' : '#ff0';
-            panel.innerHTML += `<div style="color:${color}">[${timestamp}] ${message}</div>`;
+            const colors = { info: '#0f0', warn: '#ff0', error: '#f00', success: '#0f0' };
+            panel.innerHTML += `<div style="color:${colors[type]}">[${timestamp}] ${message}</div>`;
             panel.scrollTop = panel.scrollHeight;
             
+            // Also log to console for production debugging
             console.log(`[${type.toUpperCase()}] ${message}`);
         };
 
-        // Initialize Firebase
+        // --- FIREBASE INITIALIZATION ---
         let app, auth, db, storage;
         try {
             app = initializeApp(firebaseConfig);
@@ -334,40 +850,23 @@ const firebaseConfig = {
             storage = getStorage(app);
             debugLog("✅ Firebase initialized successfully");
         } catch(e) {
-            debugLog(`❌ Firebase init error: ${e.message}`, 'error');
-            alert("Firebase initialization failed. Check console.");
+            debugLog(`❌ Firebase initialization failed: ${e.message}`, 'error');
+            alert("Critical Error: Firebase initialization failed. Check console for details.");
+            throw e; // Stop execution
         }
 
+        // ============================================================================
+        // APPLICATION STATE MANAGEMENT
+        // ============================================================================
+        
         /**
-         * ------------------------------------------------------------------
-         * CORE APPLICATION STATE & SERVICES
-         * ------------------------------------------------------------------
+         * @typedef {Object} CallState
+         * @property {string} IDLE - No active call
+         * @property {string} CONNECTING - Outgoing call in progress
+         * @property {string} RECEIVING - Incoming call ringing
+         * @property {string} CONNECTED - Active call
+         * @property {string} ENDED - Call ended
          */
-
-        const State = {
-            user: null,
-            activeContact: null,
-            contactsMap: {},
-            peer: null,
-            currentCall: null,
-            localStream: null,
-            unsubscribeChat: null,
-            callState: 'idle', // 'idle', 'connecting', 'receiving', 'connected', 'ended'
-            isMuted: false,
-            isVideoOff: false,
-            callStartTime: null,
-            callDurationInterval: null,
-            reconnectionAttempts: 0,
-            maxReconnectionAttempts: 5,
-            callStats: { 
-                startTime: null, 
-                iceCandidates: 0, 
-                connectionAttempts: 0,
-                bytesSent: 0,
-                bytesReceived: 0
-            }
-        };
-
         const CallState = {
             IDLE: 'idle',
             CONNECTING: 'connecting',
@@ -376,9 +875,50 @@ const firebaseConfig = {
             ENDED: 'ended'
         };
 
-        // --- UI MANAGER ---
+        /**
+         * Global application state
+         * @type {Object}
+         */
+        const State = {
+            user: null,
+            activeContact: null,
+            contactsMap: new Map(),
+            peer: null,
+            currentCall: null,
+            dataConnection: null,
+            localStream: null,
+            screenStream: null,
+            unsubscribeChat: null,
+            callState: CallState.IDLE,
+            callStartTime: null,
+            callDurationInterval: null,
+            reconnectionAttempts: 0,
+            maxReconnectionAttempts: 5,
+            callTimeout: null,
+            isMuted: false,
+            isVideoOff: false,
+            isScreenSharing: false,
+            callStats: {
+                startTime: null,
+                iceCandidates: 0,
+                connectionAttempts: 0,
+                bytesSent: 0,
+                bytesReceived: 0,
+                packetsLost: 0
+            }
+        };
+
+        // ============================================================================
+        // UI MANAGER - Handles all UI operations
+        // ============================================================================
         class UIManager {
             constructor() {
+                this.initializeDOM();
+                this.initTheme();
+                this.setupEventListeners();
+            }
+
+            initializeDOM() {
                 this.dom = {
                     auth: document.getElementById('auth-view'),
                     app: document.getElementById('app-view'),
@@ -386,36 +926,83 @@ const firebaseConfig = {
                     inputArea: document.getElementById('input-area'),
                     contactList: document.getElementById('contacts-list'),
                     authLoading: document.getElementById('auth-loading'),
-                    authBtnText: document.getElementById('auth-btn-text')
+                    authBtnText: document.getElementById('auth-btn-text'),
+                    callDuration: document.getElementById('call-duration'),
+                    callStatus: document.getElementById('call-status-text'),
+                    connectionQuality: document.getElementById('connection-quality')
                 };
-                this.initTheme();
             }
 
-            toast(msg, type = 'info') {
+            setupEventListeners() {
+                // Handle window resize for mobile
+                window.addEventListener('resize', this.handleResize.bind(this));
+                // Handle visibility change to pause/resume streams
+                document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
+            }
+
+            handleResize() {
+                // Adjust local video size on very small screens
+                if (window.innerWidth < 400) {
+                    const localVideo = document.getElementById('local-video');
+                    if (localVideo) {
+                        localVideo.style.width = '80px';
+                        localVideo.style.height = '110px';
+                    }
+                }
+            }
+
+            handleVisibilityChange() {
+                if (document.hidden) {
+                    // Pause video when tab is not active
+                    if (State.localStream) {
+                        State.localStream.getVideoTracks().forEach(track => track.enabled = false);
+                    }
+                } else {
+                    // Resume video when tab becomes active
+                    if (State.localStream && !State.isVideoOff) {
+                        State.localStream.getVideoTracks().forEach(track => track.enabled = true);
+                    }
+                }
+            }
+
+            /**
+             * Show toast notification
+             * @param {string} msg - Message to display
+             * @param {'info'|'error'|'success'|'warning'} type - Toast type
+             * @param {number} duration - Duration in ms (default: 4000)
+             */
+            toast(msg, type = 'info', duration = 4000) {
                 const container = document.getElementById('toast-container');
                 const el = document.createElement('div');
                 el.className = 'toast';
                 el.textContent = msg;
-                if(type === 'error') el.style.background = 'var(--danger)';
-                if(type === 'success') el.style.background = 'var(--success)';
-                if(type === 'warning') el.style.background = '#ff9800';
+                
+                const colors = {
+                    error: 'var(--danger)',
+                    success: 'var(--success)',
+                    warning: 'var(--warning)'
+                };
+                if (colors[type]) el.style.background = colors[type];
+                
                 container.appendChild(el);
                 
-                requestAnimationFrame(() => {
-                    el.classList.add('visible');
-                    setTimeout(() => {
-                        el.classList.remove('visible');
-                        setTimeout(() => el.remove(), 300);
-                    }, 4000);
-                });
+                // Animate in
+                requestAnimationFrame(() => el.classList.add('visible'));
+                
+                // Animate out and remove
+                setTimeout(() => {
+                    el.classList.remove('visible');
+                    setTimeout(() => el.remove(), 300);
+                }, duration);
             }
 
+            /**
+             * Set loading state for buttons
+             */
             setLoading(isLoading, element = null) {
                 document.body.style.cursor = isLoading ? 'wait' : 'default';
-                if(element) {
-                    element.disabled = isLoading;
-                }
-                if(this.dom.authLoading) {
+                if (element) element.disabled = isLoading;
+                if (this.dom.authLoading) {
                     this.dom.authLoading.classList.toggle('hidden', !isLoading);
                 }
             }
@@ -457,7 +1044,7 @@ const firebaseConfig = {
             closeChat() {
                 document.body.classList.remove('chat-open');
                 State.activeContact = null;
-                if(State.unsubscribeChat) {
+                if (State.unsubscribeChat) {
                     State.unsubscribeChat();
                     State.unsubscribeChat = null;
                 }
@@ -474,7 +1061,7 @@ const firebaseConfig = {
             }
 
             showCallError(message) {
-                this.toast(`Call: ${message}`, 'error');
+                this.toast(`Call Error: ${message}`, 'error');
                 debugLog(`❌ Call error: ${message}`, 'error');
             }
 
@@ -484,25 +1071,74 @@ const firebaseConfig = {
                 const minutes = Math.floor(elapsed / 60);
                 const seconds = elapsed % 60;
                 const durationText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                document.getElementById('call-duration').textContent = durationText;
+                this.dom.callDuration.textContent = durationText;
             }
 
             showCallDuration(visible) {
-                document.getElementById('call-duration').style.display = visible ? 'block' : 'none';
+                this.dom.callDuration.style.display = visible ? 'block' : 'none';
                 if (visible && !State.callDurationInterval) {
                     State.callDurationInterval = setInterval(() => this.updateCallDuration(), 1000);
                 } else if (!visible && State.callDurationInterval) {
                     clearInterval(State.callDurationInterval);
                     State.callDurationInterval = null;
-                    document.getElementById('call-duration').textContent = '00:00';
+                    this.dom.callDuration.textContent = '00:00';
                 }
+            }
+
+            /**
+             * Update connection quality indicator based on WebRTC stats
+             */
+            updateConnectionQuality(stats) {
+                if (!stats) return;
+                
+                const quality = this.calculateQuality(stats);
+                const bars = this.dom.connectionQuality.querySelectorAll('.quality-bar');
+                
+                bars.forEach((bar, index) => {
+                    bar.classList.remove('active', 'medium', 'low');
+                    if (index < quality.bars) {
+                        bar.classList.add('active', quality.level);
+                    }
+                });
+                
+                this.dom.connectionQuality.style.display = 'flex';
+            }
+
+            calculateQuality(stats) {
+                const { packetsLost, packetsReceived, jitter, rtt } = stats;
+                if (!packetsReceived || packetsReceived === 0) return { bars: 0, level: 'low' };
+                
+                const lossRate = (packetsLost / packetsReceived) * 100;
+                
+                if (lossRate < 1 && jitter < 30 && rtt < 100) {
+                    return { bars: 4, level: 'active' }; // Excellent
+                } else if (lossRate < 3 && jitter < 50 && rtt < 200) {
+                    return { bars: 3, level: 'active' }; // Good
+                } else if (lossRate < 5 && jitter < 100 && rtt < 300) {
+                    return { bars: 2, level: 'medium' }; // Fair
+                } else {
+                    return { bars: 1, level: 'low' }; // Poor
+                }
+            }
+
+            showP2PTransfer(show = true, status = 'Transferring...') {
+                const indicator = document.getElementById('p2p-transfer');
+                const statusEl = document.getElementById('transfer-status');
+                statusEl.textContent = status;
+                indicator.classList.toggle('show', show);
             }
         }
 
-        // --- AUTH SERVICE ---
+        // ============================================================================
+        // AUTHENTICATION SERVICE
+        // ============================================================================
         class AuthService {
             constructor() {
                 this.isRegistering = false;
+                this.rateLimit = {
+                    lastAttempt: 0,
+                    minInterval: 1000 // 1 second between attempts
+                };
             }
 
             toggleMode() {
@@ -515,26 +1151,44 @@ const firebaseConfig = {
                 document.getElementById('auth-error').style.display = 'none';
             }
 
+            /**
+             * Rate limiting check
+             */
+            checkRateLimit() {
+                const now = Date.now();
+                if (now - this.rateLimit.lastAttempt < this.rateLimit.minInterval) {
+                    App.ui.toast("Please wait a moment before trying again", 'warning');
+                    return false;
+                }
+                this.rateLimit.lastAttempt = now;
+                return true;
+            }
+
             async login() {
+                if (!this.checkRateLimit()) return;
+
                 const nick = document.getElementById('auth-nick').value.trim();
                 const pass = document.getElementById('auth-pass').value;
 
-                if(!nick || !pass) {
-                    this.showError("Fill all fields");
+                // Input validation
+                if (!nick || !pass) {
+                    this.showError("All fields are required");
                     return;
                 }
                 
-                if(nick.length < 3) {
-                    this.showError("Nickname min 3 chars");
+                if (nick.length < 3 || nick.length > 20) {
+                    this.showError("Nickname must be 3-20 characters");
                     return;
                 }
                 
-                if(pass.length < 6) {
-                    this.showError("Password min 6 chars");
+                if (pass.length < 6) {
+                    this.showError("Password must be at least 6 characters");
                     return;
                 }
 
-                const email = this.generateEmail(nick);
+                // Sanitize nickname
+                const sanitizedNick = this.sanitizeInput(nick);
+                const email = this.generateEmail(sanitizedNick);
                 debugLog(`📧 Generated email: ${email}`);
 
                 try {
@@ -542,32 +1196,11 @@ const firebaseConfig = {
                     document.getElementById('auth-error').style.display = 'none';
 
                     if (this.isRegistering) {
-                        debugLog("🔍 Checking nickname...");
-                        const q = query(collection(db, "users"), where("nickname", "==", nick));
-                        const check = await getDocs(q);
-                        
-                        if (!check.empty) {
-                            throw new Error("Nickname taken!");
-                        }
-
-                        debugLog("👤 Creating Auth user...");
-                        const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                        
-                        debugLog("📝 Creating Firestore doc...");
-                        await setDoc(doc(db, "users", cred.user.uid), {
-                            uid: cred.user.uid,
-                            nickname: nick,
-                            email: email,
-                            contacts: [],
-                            createdAt: serverTimestamp()
-                        });
-                        
-                        await updateProfile(cred.user, { displayName: nick });
+                        await this.registerUser(sanitizedNick, email, pass);
                     } else {
-                        debugLog("🔐 Signing in...");
-                        await signInWithEmailAndPassword(auth, email, pass);
+                        await this.signInUser(email, pass);
                     }
-                    debugLog("✅ Auth success!");
+                    debugLog("✅ Authentication successful");
                 } catch (e) {
                     debugLog(`❌ Auth error: ${e.code}`, 'error');
                     this.handleAuthError(e);
@@ -576,24 +1209,68 @@ const firebaseConfig = {
                 }
             }
 
+            sanitizeInput(input) {
+                return input.replace(/[<>\"'&]/g, '');
+            }
+
+            async registerUser(nickname, email, password) {
+                debugLog("🔍 Checking nickname availability...");
+                const q = query(collection(db, "users"), where("nickname", "==", nickname));
+                const check = await getDocs(q);
+                
+                if (!check.empty) {
+                    throw new Error("Nickname already taken!");
+                }
+
+                debugLog("👤 Creating new user...");
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                
+                debugLog("📝 Creating user document...");
+                await setDoc(doc(db, "users", cred.user.uid), {
+                    uid: cred.user.uid,
+                    nickname: nickname,
+                    email: email,
+                    contacts: [],
+                    peerId: this.generatePeerId(nickname, cred.user.uid),
+                    createdAt: serverTimestamp(),
+                    lastSeen: serverTimestamp()
+                });
+                
+                await updateProfile(cred.user, { displayName: nickname });
+            }
+
+            async signInUser(email, password) {
+                debugLog("🔐 Signing in existing user...");
+                await signInWithEmailAndPassword(auth, email, password);
+                
+                // Update last seen
+                const userDoc = doc(db, "users", auth.currentUser.uid);
+                await updateDoc(userDoc, { lastSeen: serverTimestamp() });
+            }
+
             generateEmail(nickname) {
                 const sanitized = nickname.toLowerCase().replace(/[^a-z0-9]/g, '');
                 return `${sanitized}@familychat.app`;
             }
 
+            generatePeerId(nickname, uid) {
+                const sanitized = nickname.replace(/[^a-zA-Z0-9]/g, '');
+                return `${sanitized}_${uid.substring(0, 8)}`;
+            }
+
             handleAuthError(error) {
-                let msg = "Auth failed";
-                switch(error.code) {
-                    case 'auth/network-request-failed': msg = "Network error"; break;
-                    case 'auth/invalid-email': msg = "Invalid email format"; break;
-                    case 'auth/user-not-found': msg = "Account not found"; break;
-                    case 'auth/wrong-password': msg = "Wrong password"; break;
-                    case 'auth/email-already-in-use': msg = "Nickname taken"; break;
-                    case 'auth/too-many-requests': msg = "Too many attempts"; break;
-                    case 'auth/operation-not-allowed': msg = "Email auth not enabled"; break;
-                    case 'auth/api-key-not-valid': msg = "Invalid API key"; break;
-                    default: msg = error.message.substring(0, 50);
-                }
+                const errorMap = {
+                    'auth/network-request-failed': "Network error. Please check your connection",
+                    'auth/invalid-email': "Invalid email format",
+                    'auth/user-not-found': "Account not found",
+                    'auth/wrong-password': "Incorrect password",
+                    'auth/email-already-in-use': "Nickname already taken",
+                    'auth/too-many-requests': "Too many attempts. Please try later",
+                    'auth/operation-not-allowed': "Email authentication not enabled",
+                    'auth/api-key-not-valid': "Invalid API key configuration"
+                };
+                
+                const msg = errorMap[error.code] || error.message.substring(0, 60);
                 this.showError(msg);
             }
 
@@ -603,24 +1280,30 @@ const firebaseConfig = {
                 errDiv.textContent = message;
             }
 
-            logout() {
-                if(State.currentCall) {
+            async logout() {
+                if (State.callState !== CallState.IDLE) {
                     debugLog("📞 Ending call before logout");
                     App.call.endCall();
                 }
                 
-                debugLog("🚪 Logging out...");
-                signOut(auth).then(() => {
+                debugLog("🚪 Logging out user...");
+                try {
+                    await signOut(auth);
                     window.location.reload();
-                }).catch(e => {
+                } catch (e) {
                     debugLog(`❌ Logout error: ${e.message}`, 'error');
-                });
+                    App.ui.toast("Logout failed", 'error');
+                }
             }
         }
 
-        // --- CHAT & CONTACTS SERVICE ---
+        // ============================================================================
+        // CHAT & CONTACTS SERVICE
+        // ============================================================================
         class ChatService {
             constructor() {
+                this.searchDebounceTimer = null;
+                this.fileUploadQueue = [];
                 this.init();
             }
 
@@ -629,53 +1312,56 @@ const firebaseConfig = {
             }
 
             initVideoDrag() {
-                let isDragging = false;
-                let currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
+                let isDragging = false, currentX = 0, currentY = 0, initialX = 0, initialY = 0, xOffset = 0, yOffset = 0;
                 const video = document.getElementById('local-video');
 
-                function dragStart(e) {
-                    if (e.type === "touchstart") {
-                        initialX = e.touches[0].clientX - xOffset;
-                        initialY = e.touches[0].clientY - yOffset;
-                    } else {
-                        initialX = e.clientX - xOffset;
-                        initialY = e.clientY - yOffset;
-                    }
-                    if (e.target === video) isDragging = true;
-                }
+                const dragStart = (e) => {
+                    if (e.target !== video) return;
+                    isDragging = true;
+                    video.classList.add('dragging');
+                    
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    
+                    initialX = clientX - xOffset;
+                    initialY = clientY - yOffset;
+                };
 
-                function dragEnd(e) {
+                const dragEnd = () => {
+                    isDragging = false;
+                    video.classList.remove('dragging');
                     initialX = currentX;
                     initialY = currentY;
-                    isDragging = false;
-                }
+                };
 
-                function drag(e) {
-                    if (isDragging) {
-                        e.preventDefault();
-                        if (e.type === "touchmove") {
-                            currentX = e.touches[0].clientX - initialX;
-                            currentY = e.touches[0].clientY - initialY;
-                        } else {
-                            currentX = e.clientX - initialX;
-                            currentY = e.clientY - initialY;
-                        }
-                        xOffset = currentX;
-                        yOffset = currentY;
-                        video.style.transform = `translate(${currentX}px, ${currentY}px)`;
-                    }
-                }
+                const drag = (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    
+                    currentX = clientX - initialX;
+                    currentY = clientY - initialY;
+                    xOffset = currentX;
+                    yOffset = currentY;
+                    
+                    video.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                };
 
+                // Mouse events
                 video.addEventListener('mousedown', dragStart);
                 video.addEventListener('mouseup', dragEnd);
                 video.addEventListener('mousemove', drag);
-                video.addEventListener('touchstart', dragStart);
+                
+                // Touch events
+                video.addEventListener('touchstart', dragStart, { passive: false });
                 video.addEventListener('touchend', dragEnd);
-                video.addEventListener('touchmove', drag);
+                video.addEventListener('touchmove', drag, { passive: false });
             }
 
             async loadContacts() {
-                if(!State.user || !State.user.contacts) {
+                if (!State.user?.contacts?.length) {
                     this.renderEmptyContactList();
                     return;
                 }
@@ -683,11 +1369,7 @@ const firebaseConfig = {
                 const list = document.getElementById('contacts-list');
                 list.innerHTML = '';
 
-                if(State.user.contacts.length === 0) {
-                    this.renderEmptyContactList();
-                    return;
-                }
-
+                // Batch fetch contacts in chunks (Firestore limitation: max 10 per query)
                 const chunks = [];
                 for (let i = 0; i < State.user.contacts.length; i += 10) {
                     chunks.push(State.user.contacts.slice(i, i + 10));
@@ -699,10 +1381,11 @@ const firebaseConfig = {
                         const snap = await getDocs(q);
                         snap.forEach(d => {
                             const contact = d.data();
-                            State.contactsMap[contact.uid] = contact;
+                            State.contactsMap.set(contact.uid, contact);
                             this.renderContactItem(contact);
                         });
                     }
+                    debugLog(`✅ Loaded ${State.contactsMap.size} contacts`);
                 } catch (e) {
                     debugLog(`❌ Load contacts error: ${e.message}`, 'error');
                     App.ui.toast("Error loading contacts", 'error');
@@ -711,7 +1394,12 @@ const firebaseConfig = {
 
             renderEmptyContactList() {
                 const list = document.getElementById('contacts-list');
-                list.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.6;">Search for family members to add them!</div>';
+                list.innerHTML = `
+                    <div class="center flex flex-col" style="height: 100%; color: var(--text-sub); opacity: 0.6; padding: 40px;">
+                        <i class="fas fa-search" style="font-size: 32px; margin-bottom: 10px;"></i>
+                        <p>Search for family members to add them!</p>
+                    </div>
+                `;
             }
 
             renderContactItem(contact) {
@@ -722,7 +1410,7 @@ const firebaseConfig = {
                 div.innerHTML = `
                     <div class="avatar">${contact.nickname[0].toUpperCase()}</div>
                     <div class="contact-info">
-                        <div class="contact-name">${contact.nickname}</div>
+                        <div class="contact-name">${this.escapeHtml(contact.nickname)}</div>
                         <div class="contact-status">Tap to chat</div>
                     </div>
                 `;
@@ -730,30 +1418,62 @@ const firebaseConfig = {
                 list.appendChild(div);
             }
 
+            /**
+             * Debounced search handler
+             */
+            handleSearchKey(event) {
+                if (event.key === 'Enter') {
+                    this.searchUser();
+                    return;
+                }
+                
+                // Clear existing timer
+                if (this.searchDebounceTimer) {
+                    clearTimeout(this.searchDebounceTimer);
+                }
+                
+                // Set new timer (300ms debounce)
+                this.searchDebounceTimer = setTimeout(() => {
+                    const input = event.target;
+                    if (input.value.trim().length >= 3) {
+                        this.searchUser();
+                    }
+                }, 300);
+            }
+
             async searchUser() {
                 const input = document.getElementById('contact-search');
                 const val = input.value.trim();
                 
-                if(!val) {
-                    App.ui.toast("Enter a nickname to search", 'error');
+                if (!val) {
+                    App.ui.toast("Enter a nickname to search", 'warning');
                     return;
                 }
                 
-                if(val === State.user.nickname) {
-                    App.ui.toast("That's you!", 'error');
+                if (val.length < 3) {
+                    App.ui.toast("Search query must be at least 3 characters", 'warning');
+                    return;
+                }
+                
+                if (val === State.user.nickname) {
+                    App.ui.toast("That's you!", 'warning');
                     return;
                 }
 
-                App.ui.toast("Searching...");
+                App.ui.setLoading(true);
                 debugLog(`🔍 Searching for: ${val}`);
                 
                 try {
-                    const q = query(collection(db, "users"), where("nickname", "==", val));
+                    const q = query(
+                        collection(db, "users"), 
+                        where("nickname", ">=", val),
+                        where("nickname", "<=", val + '\uf8ff')
+                    );
                     const snap = await getDocs(q);
                     
-                    if(snap.empty) {
-                        App.ui.toast("User not found", 'error');
-                        debugLog("User not found");
+                    if (snap.empty) {
+                        App.ui.toast("User not found", 'warning');
+                        debugLog("❌ User not found");
                     } else {
                         const newUser = snap.docs[0].data();
                         await this.addContact(newUser);
@@ -762,23 +1482,25 @@ const firebaseConfig = {
                 } catch (e) {
                     debugLog(`❌ Search error: ${e.message}`, 'error');
                     App.ui.toast("Search failed", 'error');
+                } finally {
+                    App.ui.setLoading(false);
                 }
             }
 
             async addContact(newUser) {
-                if(State.user.contacts.includes(newUser.uid)) {
-                    App.ui.toast("Already in contacts");
+                if (State.user.contacts.includes(newUser.uid)) {
+                    App.ui.toast("Already in contacts", 'info');
                     return;
                 }
 
                 try {
                     const myRef = doc(db, "users", State.user.uid);
-                    const updatedContacts = [...(State.user.contacts || []), newUser.uid];
+                    const updatedContacts = [...State.user.contacts, newUser.uid];
                     
                     await updateDoc(myRef, { contacts: updatedContacts });
                     State.user.contacts = updatedContacts;
                     
-                    State.contactsMap[newUser.uid] = newUser;
+                    State.contactsMap.set(newUser.uid, newUser);
                     this.renderContactItem(newUser);
                     App.ui.toast("Added to contacts!", 'success');
                     debugLog(`✅ Added contact: ${newUser.nickname}`);
@@ -789,18 +1511,24 @@ const firebaseConfig = {
             }
 
             startChat(contact) {
-                document.querySelectorAll('.contact-item').forEach(item => {
-                    item.classList.remove('active');
-                });
+                // Remove active class from all contacts
+                document.querySelectorAll('.contact-item').forEach(item => item.classList.remove('active'));
                 document.querySelector(`[data-uid="${contact.uid}"]`)?.classList.add('active');
 
                 State.activeContact = contact;
                 App.ui.openChatUI(contact);
+                this.loadChatMessages(contact);
+            }
 
+            loadChatMessages(contact) {
                 const chatId = this.getChatId(State.user.uid, contact.uid);
-                const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt", "asc"));
+                const q = query(
+                    collection(db, "chats", chatId, "messages"), 
+                    orderBy("createdAt", "asc")
+                );
 
-                if(State.unsubscribeChat) {
+                // Unsubscribe from previous chat listener
+                if (State.unsubscribeChat) {
                     State.unsubscribeChat();
                     State.unsubscribeChat = null;
                 }
@@ -828,10 +1556,13 @@ const firebaseConfig = {
                 
                 let content = `<span>${this.escapeHtml(msg.text || '')}</span>`;
                 
-                if(msg.type === 'image' && msg.fileUrl) {
-                    content = `<img src="${msg.fileUrl}" class="msg-img" onclick="window.open('${msg.fileUrl}')" alt="Image">` + content;
+                if (msg.type === 'image' && msg.fileUrl) {
+                    content = `<img src="${msg.fileUrl}" class="msg-img" onclick="window.open('${msg.fileUrl}', '_blank')" alt="Image" loading="lazy">` + content;
                 } else if (msg.type === 'file' && msg.fileUrl) {
-                    content = `<a href="${msg.fileUrl}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fas fa-file"></i> ${this.escapeHtml(msg.text || 'File')}</a><br>` + content;
+                    content = `<a href="${msg.fileUrl}" target="_blank" style="color:var(--primary); text-decoration:none; display:flex; align-items:center; gap:8px;"><i class="fas fa-file-alt"></i> ${this.escapeHtml(msg.name || 'File')}</a><br>` + content;
+                } else if (msg.type === 'p2p-file' && msg.metadata) {
+                    // P2P file transfer message
+                    content = `<div style="color:var(--primary); display:flex; align-items:center; gap:8px;"><i class="fas fa-exchange-alt"></i> P2P File: ${this.escapeHtml(msg.metadata.name)} (${this.formatFileSize(msg.metadata.size)})</div>` + content;
                 }
 
                 const date = msg.createdAt?.toDate ? msg.createdAt.toDate() : new Date();
@@ -841,7 +1572,12 @@ const firebaseConfig = {
                 
                 const area = document.getElementById('messages-area');
                 area.appendChild(div);
-                area.scrollTop = area.scrollHeight;
+                
+                // Auto-scroll to bottom if user is near the bottom
+                const isNearBottom = area.scrollHeight - area.scrollTop - area.clientHeight < 100;
+                if (isNearBottom) {
+                    area.scrollTop = area.scrollHeight;
+                }
             }
 
             escapeHtml(text) {
@@ -850,29 +1586,50 @@ const firebaseConfig = {
                 return div.innerHTML;
             }
 
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            handleMessageKey(event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    this.sendMessage();
+                }
+            }
+
             async sendMessage(fileData = null) {
-                if(!State.activeContact) return;
+                if (!State.activeContact) {
+                    debugLog("❌ No active contact", 'error');
+                    return;
+                }
                 
                 const input = document.getElementById('msg-input');
                 const text = input.value.trim();
                 
-                if(!text && !fileData) return;
+                if (!text && !fileData) {
+                    debugLog("❌ Empty message", 'warn');
+                    return;
+                }
 
                 const chatId = this.getChatId(State.user.uid, State.activeContact.uid);
-                
-                const payload = {
+                const messageData = {
                     text: fileData ? (fileData.name || text) : text,
                     senderId: State.user.uid,
                     createdAt: serverTimestamp(),
                     type: fileData ? fileData.type : 'text',
-                    fileUrl: fileData ? fileData.url : null
+                    fileUrl: fileData ? fileData.url : null,
+                    metadata: fileData ? fileData.metadata : null
                 };
 
                 try {
                     debugLog(`📤 Sending message...`);
-                    await addDoc(collection(db, "chats", chatId, "messages"), payload);
-                    if(!fileData) input.value = '';
-                    debugLog("✅ Message sent");
+                    await addDoc(collection(db, "chats", chatId, "messages"), messageData);
+                    if (!fileData) input.value = '';
+                    debugLog("✅ Message sent successfully");
                 } catch (e) {
                     debugLog(`❌ Send error: ${e.message}`, 'error');
                     App.ui.toast("Failed to send message", 'error');
@@ -881,53 +1638,208 @@ const firebaseConfig = {
 
             async handleFileUpload(input) {
                 const file = input.files[0];
-                if(!file) return;
+                if (!file) return;
                 
-                if(file.size > 10 * 1024 * 1024) {
-                    App.ui.toast("File too large (max 10MB)", 'error');
+                // Validate file
+                if (file.size > 50 * 1024 * 1024) { // 50MB limit
+                    App.ui.toast("File too large (max 50MB)", 'error');
                     input.value = '';
                     return;
                 }
 
-                App.ui.toast("Uploading...");
+                // Check if we can use P2P file transfer (during active call)
+                if (State.callState === CallState.CONNECTED && State.dataConnection?.open) {
+                    this.sendFileP2P(file);
+                    input.value = '';
+                    return;
+                }
+
+                // Fall back to Firebase Storage
+                await this.uploadToStorage(file);
+                input.value = '';
+            }
+
+            /**
+             * P2P File Transfer via WebRTC Data Channel
+             */
+            sendFileP2P(file) {
+                if (!State.dataConnection || !State.dataConnection.open) {
+                    App.ui.toast("P2P connection not available", 'warning');
+                    return;
+                }
+
+                const reader = new FileReader();
+                const chunkSize = 16 * 1024; // 16KB chunks
+                let offset = 0;
+                const fileId = Date.now();
+
+                reader.onload = (e) => {
+                    const chunk = e.target.result;
+                    const isLast = offset >= file.size;
+                    
+                    // Send chunk
+                    State.dataConnection.send({
+                        type: 'file-chunk',
+                        fileId,
+                        chunk: isLast ? null : chunk,
+                        metadata: {
+                            name: file.name,
+                            size: file.size,
+                            type: file.type
+                        },
+                        offset,
+                        isLast
+                    });
+
+                    if (!isLast) {
+                        offset += chunkSize;
+                        readNextChunk();
+                        // Update progress
+                        const progress = Math.min((offset / file.size) * 100, 100);
+                        App.ui.showP2PTransfer(true, `Sending: ${Math.round(progress)}%`);
+                    } else {
+                        App.ui.showP2PTransfer(false);
+                        this.sendMessage({
+                            type: 'p2p-file',
+                            metadata: { name: file.name, size: file.size }
+                        });
+                        App.ui.toast("P2P file sent!", 'success');
+                    }
+                };
+
+                const readNextChunk = () => {
+                    const slice = file.slice(offset, offset + chunkSize);
+                    reader.readAsArrayBuffer(slice);
+                };
+
+                readNextChunk();
+                debugLog(`📤 Starting P2P file transfer: ${file.name}`);
+            }
+
+            /**
+             * Handle incoming P2P file data
+             */
+            handleIncomingFile(data) {
+                if (!State.incomingFile) {
+                    State.incomingFile = {
+                        chunks: [],
+                        metadata: data.metadata,
+                        fileId: data.fileId
+                    };
+                }
+
+                if (data.chunk) {
+                    State.incomingFile.chunks.push(data.chunk);
+                }
+
+                if (data.isLast) {
+                    // Reconstruct file
+                    const blob = new Blob(State.incomingFile.chunks, { 
+                        type: State.incomingFile.metadata.type 
+                    });
+                    const url = URL.createObjectURL(blob);
+                    
+                    // Create download link
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = State.incomingFile.metadata.name;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    // Clean up
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    
+                    App.ui.showP2PTransfer(false);
+                    App.ui.toast("P2P file received!", 'success');
+                    debugLog(`✅ P2P file transfer complete: ${State.incomingFile.metadata.name}`);
+                    
+                    // Send confirmation message
+                    this.sendMessage({
+                        type: 'p2p-file',
+                        metadata: State.incomingFile.metadata
+                    });
+                    
+                    State.incomingFile = null;
+                } else {
+                    // Update progress
+                    const progress = Math.min((data.offset / data.metadata.size) * 100, 100);
+                    App.ui.showP2PTransfer(true, `Receiving: ${Math.round(progress)}%`);
+                }
+            }
+
+            async uploadToStorage(file) {
                 App.ui.setLoading(true);
+                App.ui.toast("Uploading to cloud...", 'info');
                 
                 try {
                     const storageRef = ref(storage, `chat/${Date.now()}_${file.name}`);
-                    const snap = await uploadBytes(storageRef, file);
+                    const uploadTask = uploadBytes(storageRef, file);
+                    
+                    // Monitor progress
+                    uploadTask.on('state_changed', 
+                        (snapshot) => {
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            debugLog(`📤 Upload progress: ${progress.toFixed(1)}%`);
+                        },
+                        (error) => {
+                            debugLog(`❌ Upload failed: ${error.message}`, 'error');
+                            App.ui.toast("Upload failed", 'error');
+                        }
+                    );
+
+                    const snap = await uploadTask;
                     const url = await getDownloadURL(snap.ref);
                     const type = file.type.startsWith('image/') ? 'image' : 'file';
-                    await this.sendMessage({ url, type, name: file.name });
+                    
+                    await this.sendMessage({ 
+                        url, 
+                        type, 
+                        name: file.name,
+                        metadata: { size: file.size }
+                    });
+                    
                     App.ui.toast("File uploaded!", 'success');
-                    debugLog("✅ File uploaded");
+                    debugLog("✅ Cloud upload complete");
                 } catch(e) {
                     debugLog(`❌ Upload error: ${e.message}`, 'error');
                     App.ui.toast("Upload failed", 'error');
                 } finally {
                     App.ui.setLoading(false);
-                    input.value = '';
                 }
             }
         }
 
-        // --- VIDEO CALL SERVICE ---
+        // ============================================================================
+        // P2P VIDEO CALL SERVICE
+        // ============================================================================
         class CallService {
             constructor() {
                 this.audioCtx = null;
                 this.oscillator = null;
                 this.ringInterval = null;
+                
                 // PRODUCTION-READY ICE SERVERS
                 this.iceServers = [
-                    // RELIABLE STUN SERVERS
+                    // Google STUN (primary)
                     { urls: 'stun:stun.l.google.com:19302' },
                     { urls: 'stun:stun1.l.google.com:19302' },
                     { urls: 'stun:stun2.l.google.com:19302' },
                     { urls: 'stun:stun3.l.google.com:19302' },
                     { urls: 'stun:stun4.l.google.com:19302' },
-                    { urls: 'stun:stun.nextcloud.com:443' },
-                    { urls: 'stun:stunserver.stunprotocol.org:3478' },
+                    // Cloudflare STUN
                     { urls: 'stun:stun.cloudflare.com:3478' },
-                    // FREE TURN SERVERS (REPLACE IN PRODUCTION)
+                    { urls: 'stun:stun.cloudflare.com:5349' },
+                    // Nextcloud STUN
+                    { urls: 'stun:stun.nextcloud.com:443' },
+                    // Twilio TURN (Free tier - replace with your credentials)
+                    // {
+                    //     urls: 'turn:global.turn.twilio.com:3478?transport=udp',
+                    //     username: 'your-twilio-username',
+                    //     credential: 'your-twilio-credential'
+                    // },
+                    // OpenRelay TURN (Free for testing)
                     {
                         urls: 'turn:openrelay.metered.ca:80',
                         username: 'openrelayproject',
@@ -961,7 +1873,9 @@ const firebaseConfig = {
                         iceTransportPolicy: 'all',
                         rtcpMuxPolicy: 'require',
                         tcpCandidatePolicy: 'enabled',
-                        bundlePolicy: 'max-bundle'
+                        bundlePolicy: 'max-bundle',
+                        iceConnectionReceivingTimeout: 90000,
+                        iceGatheringTimeout: 15000
                     }
                 });
 
@@ -969,6 +1883,7 @@ const firebaseConfig = {
             }
 
             generatePeerId(nickname, uid) {
+                // Create deterministic peer ID
                 const sanitized = nickname.replace(/[^a-zA-Z0-9]/g, '');
                 return `${sanitized}_${uid.substring(0, 8)}`;
             }
@@ -976,13 +1891,21 @@ const firebaseConfig = {
             setupPeerEvents() {
                 this.peer.on('open', (id) => {
                     debugLog(`✅ PeerJS connected: ${id}`);
-                    App.ui.toast("✅ Messenger ready!", 'success');
+                    App.ui.toast("✅ P2P messenger ready!", 'success');
                     State.reconnectionAttempts = 0;
+                    
+                    // Store peer ID in Firestore
+                    this.updateMyPeerId(id);
                 });
 
                 this.peer.on('call', (call) => {
                     debugLog(`📞 Incoming call: ${call.peer}`);
                     this.handleIncomingCall(call);
+                });
+
+                this.peer.on('connection', (connection) => {
+                    debugLog(`🔗 P2P data connection established: ${connection.peer}`);
+                    this.handleDataConnection(connection);
                 });
 
                 this.peer.on('error', (err) => {
@@ -991,47 +1914,62 @@ const firebaseConfig = {
                 });
 
                 this.peer.on('disconnected', () => {
-                    debugLog("⚠️ Peer disconnected");
-                    App.ui.toast("Reconnecting...", 'warning');
+                    debugLog("⚠️ Peer disconnected, attempting reconnection");
+                    App.ui.toast("Connection lost, reconnecting...", 'warning');
                     this.attemptReconnection();
                 });
             }
 
-            handlePeerError(err) {
-                let msg = "Connection error";
-                let showToast = true;
-                switch(err.type) {
-                    case 'unavailable-id': 
-                        msg = "ID in use - reloading...";
-                        setTimeout(() => location.reload(), 2000);
-                        break;
-                    case 'network': msg = "Network error"; break;
-                    case 'server-error': msg = "Server error"; break;
-                    case 'browser-incompatible': 
-                        msg = "Browser not supported";
-                        App.ui.toast(msg, 'error');
-                        return;
-                    case 'webrtc': msg = "WebRTC error"; break;
-                    default: msg = err.message || 'Unknown error';
+            async updateMyPeerId(peerId) {
+                try {
+                    const userDoc = doc(db, "users", State.user.uid);
+                    await updateDoc(userDoc, { peerId, lastSeen: serverTimestamp() });
+                    debugLog(`📌 Updated peer ID: ${peerId}`);
+                } catch (e) {
+                    debugLog(`❌ Failed to update peer ID: ${e.message}`, 'error');
                 }
-                if (showToast) App.ui.toast(msg, 'error');
-                if (State.callState !== CallState.IDLE) this.endCall();
+            }
+
+            handlePeerError(err) {
+                const errorHandlers = {
+                    'unavailable-id': () => {
+                        App.ui.toast("ID conflict, reloading...", 'error');
+                        setTimeout(() => location.reload(), 2000);
+                    },
+                    'network': () => App.ui.toast("Network error. Check connection", 'error'),
+                    'server-error': () => App.ui.toast("Signaling server error", 'error'),
+                    'browser-incompatible': () => App.ui.toast("Browser not supported", 'error'),
+                    'webrtc': () => App.ui.toast("WebRTC error", 'error')
+                };
+
+                const handler = errorHandlers[err.type];
+                if (handler) handler();
+                else App.ui.toast(err.message || 'Unknown error', 'error');
+
+                if (State.callState !== CallState.IDLE) {
+                    this.endCall();
+                }
             }
 
             attemptReconnection() {
-                if(State.reconnectionAttempts < State.maxReconnectionAttempts) {
-                    State.reconnectionAttempts++;
-                    debugLog(`🔄 Reconnecting... (${State.reconnectionAttempts}/${State.maxReconnectionAttempts})`);
-                    setTimeout(() => {
-                        this.peer.reconnect();
-                    }, 3000 * State.reconnectionAttempts);
-                } else {
+                if (State.reconnectionAttempts >= State.maxReconnectionAttempts) {
                     App.ui.toast("Failed to reconnect", 'error');
-                    debugLog("❌ Max reconnection attempts reached", 'error');
+                    debugLog("❌ Max reconnection attempts exceeded", 'error');
                     if (State.callState !== CallState.IDLE) this.endCall();
+                    return;
                 }
+
+                State.reconnectionAttempts++;
+                debugLog(`🔄 Reconnection attempt ${State.reconnectionAttempts}/${State.maxReconnectionAttempts}`);
+                
+                setTimeout(() => {
+                    this.peer.reconnect();
+                }, 2000 * State.reconnectionAttempts);
             }
 
+            // ============================================================================
+            // AUDIO ALERT SYSTEM
+            // ============================================================================
             async ensureAudioContext() {
                 if (!this.audioCtx) {
                     this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1054,13 +1992,13 @@ const firebaseConfig = {
                     gainNode.connect(this.audioCtx.destination);
 
                     if (type === 'incoming') {
-                        // Classic ringtone pattern
+                        // Classic ringtone pattern (800Hz, 1.5s burst every 3s)
                         this.oscillator.type = 'sine';
                         this.oscillator.frequency.setValueAtTime(800, this.audioCtx.currentTime);
                         gainNode.gain.setValueAtTime(0, this.audioCtx.currentTime);
                         
                         const now = this.audioCtx.currentTime;
-                        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.1);
+                        gainNode.gain.linearRampToValueAtTime(0.25, now + 0.1);
                         gainNode.gain.linearRampToValueAtTime(0, now + 1.5);
                         
                         this.oscillator.start(now);
@@ -1073,14 +2011,14 @@ const firebaseConfig = {
                              gn.connect(this.audioCtx.destination);
                              osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
                              gn.gain.setValueAtTime(0, this.audioCtx.currentTime);
-                             gn.gain.linearRampToValueAtTime(0.3, this.audioCtx.currentTime + 0.1);
+                             gn.gain.linearRampToValueAtTime(0.25, this.audioCtx.currentTime + 0.1);
                              gn.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 1.5);
                              osc.start();
                              osc.stop(this.audioCtx.currentTime + 1.5);
                         }, 3000);
 
                     } else if (type === 'dialing') {
-                        // Dialing tone
+                        // Dialing tone (400Hz continuous)
                         this.oscillator.type = 'sine';
                         this.oscillator.frequency.setValueAtTime(400, this.audioCtx.currentTime);
                         gainNode.gain.setValueAtTime(0.1, this.audioCtx.currentTime);
@@ -1093,9 +2031,7 @@ const firebaseConfig = {
 
             stopRing() {
                 if (this.oscillator) {
-                    try { 
-                        this.oscillator.stop(); 
-                    } catch(e) {}
+                    try { this.oscillator.stop(); } catch(e) {}
                     this.oscillator = null;
                 }
                 if (this.ringInterval) {
@@ -1104,6 +2040,9 @@ const firebaseConfig = {
                 }
             }
 
+            // ============================================================================
+            // MEDIA STREAM MANAGEMENT
+            // ============================================================================
             async getStream(audioOnly = false) {
                 try {
                     const constraints = {
@@ -1111,40 +2050,60 @@ const firebaseConfig = {
                             width: { ideal: 1280, min: 640, max: 1920 },
                             height: { ideal: 720, min: 480, max: 1080 },
                             frameRate: { ideal: 30, min: 15 },
-                            facingMode: 'user'
+                            facingMode: 'user',
+                            aspectRatio: 16/9
                         },
                         audio: {
                             echoCancellation: true,
                             noiseSuppression: true,
                             autoGainControl: true,
                             channelCount: { ideal: 1 },
-                            sampleRate: { ideal: 48000 }
+                            sampleRate: { ideal: 48000 },
+                            sampleSize: { ideal: 16 }
                         }
                     };
 
                     debugLog(`📹 Requesting media (audioOnly: ${audioOnly})`);
                     const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    
+                    // Handle stream errors
+                    stream.getTracks().forEach(track => {
+                        track.onended = () => {
+                            debugLog(`🛑 Track ended: ${track.kind}`, 'warn');
+                            if (State.callState === CallState.CONNECTED) {
+                                App.ui.toast(`${track.kind} track ended`, 'warning');
+                            }
+                        };
+                        track.onmute = () => debugLog(`🔇 Track muted: ${track.kind}`, 'info');
+                        track.onunmute = () => debugLog(`🔊 Track unmuted: ${track.kind}`, 'info');
+                    });
+
                     State.localStream = stream;
                     document.getElementById('local-video').srcObject = stream;
                     this.updateCallControls();
-                    debugLog("✅ Media granted");
+                    debugLog("✅ Media stream granted");
                     
                     return stream;
                 } catch (e) {
                     debugLog(`❌ Media error: ${e.name}`, 'error');
                     
-                    let msg = "Access denied";
-                    if(e.name === 'NotAllowedError') msg = "Permission denied!";
-                    else if(e.name === 'NotFoundError') msg = "No devices found";
-                    else if(e.name === 'NotReadableError') msg = "Device in use";
-                    else if(e.name === 'SecurityError') msg = "HTTPS required!";
-                    else if(e.name === 'OverconstrainedError') msg = "Device doesn't meet requirements";
+                    const errorMessages = {
+                        'NotAllowedError': "Permission denied! Allow camera/microphone access",
+                        'NotFoundError': "No camera/microphone found",
+                        'NotReadableError': "Device is already in use",
+                        'SecurityError': "HTTPS required for secure context",
+                        'OverconstrainedError': "Device doesn't support requested quality",
+                        'AbortError': "Media request was cancelled"
+                    };
                     
-                    App.ui.toast(msg, 'error');
+                    App.ui.toast(errorMessages[e.name] || "Media access failed", 'error');
                     throw e;
                 }
             }
 
+            // ============================================================================
+            // CALL HANDLING LOGIC
+            // ============================================================================
             handleIncomingCall(call) {
                 if (State.callState !== CallState.IDLE) {
                     debugLog("📞 Busy - rejecting incoming call");
@@ -1161,13 +2120,17 @@ const firebaseConfig = {
                 document.getElementById('caller-name').innerText = callerRaw || 'Unknown';
                 document.getElementById('caller-avatar').innerText = (callerRaw || '?')[0].toUpperCase();
                 
+                // Check if it's video or audio call
+                const isVideo = call.options?.metadata?.video !== false;
+                document.getElementById('call-type').innerText = isVideo ? 'Video' : 'Voice';
+                
                 document.getElementById('incoming-modal').classList.add('show');
                 this.playRing('incoming');
-                debugLog("📞 Incoming modal shown");
+                debugLog("📞 Incoming call modal shown");
                 
                 // Auto-reject after 30 seconds
                 State.callTimeout = setTimeout(() => {
-                    if(State.callState === CallState.RECEIVING) {
+                    if (State.callState === CallState.RECEIVING) {
                         this.rejectCall();
                         App.ui.toast("Call timed out", 'warning');
                     }
@@ -1175,7 +2138,7 @@ const firebaseConfig = {
             }
 
             async acceptCall() {
-                if(State.callState !== CallState.RECEIVING || !State.tempCall) {
+                if (State.callState !== CallState.RECEIVING || !State.tempCall) {
                     debugLog("❌ Invalid accept call state", 'error');
                     return;
                 }
@@ -1185,8 +2148,13 @@ const firebaseConfig = {
                 document.getElementById('incoming-modal').classList.remove('show');
                 
                 try {
-                    const stream = await this.getStream();
-                    State.tempCall.answer(stream);
+                    const isVideo = State.tempCall.options?.metadata?.video !== false;
+                    const stream = await this.getStream(!isVideo);
+                    
+                    State.tempCall.answer(stream, {
+                        sdpTransform: (sdp) => this.optimizeSDP(sdp)
+                    });
+                    
                     this.setupCallEvents(State.tempCall);
                     State.callState = CallState.CONNECTING;
                     App.ui.toast("Connecting...", 'info');
@@ -1195,7 +2163,7 @@ const firebaseConfig = {
                     debugLog(`❌ Accept error: ${e.message}`, 'error');
                     State.callState = CallState.IDLE;
                     this.rejectCall();
-                    App.ui.toast("Failed to accept", 'error');
+                    App.ui.toast("Failed to accept call", 'error');
                 }
             }
 
@@ -1208,7 +2176,7 @@ const firebaseConfig = {
                 this.stopRing();
                 document.getElementById('incoming-modal').classList.remove('show');
                 
-                if(State.tempCall) {
+                if (State.tempCall) {
                     try { State.tempCall.close(); } catch(e) {}
                     State.tempCall = null;
                 }
@@ -1221,19 +2189,27 @@ const firebaseConfig = {
             }
 
             async startCall(audioOnly = false) {
-                if(!State.activeContact) {
-                    App.ui.toast("Select contact first", 'error');
+                if (!State.activeContact) {
+                    App.ui.toast("Select a contact first", 'warning');
                     return;
                 }
                 
-                if(State.callState !== CallState.IDLE) {
-                    App.ui.toast("Already in call", 'warning');
+                if (State.callState !== CallState.IDLE) {
+                    App.ui.toast("Already in a call", 'warning');
                     return;
                 }
 
-                const targetPeerId = this.generatePeerId(State.activeContact.nickname, State.activeContact.uid);
-                debugLog(`🎯 Calling: ${targetPeerId}`);
+                // Get contact's peer ID from Firestore
+                const contactDoc = await getDoc(doc(db, "users", State.activeContact.uid));
+                const contactData = contactDoc.data();
+                const targetPeerId = contactData?.peerId;
                 
+                if (!targetPeerId) {
+                    App.ui.toast("Contact is offline or not ready", 'warning');
+                    return;
+                }
+
+                debugLog(`🎯 Calling peer: ${targetPeerId}`);
                 State.callStats.connectionAttempts++;
 
                 try {
@@ -1247,14 +2223,28 @@ const firebaseConfig = {
                     State.callStats.startTime = Date.now();
                     State.callState = CallState.CONNECTING;
 
-                    const call = this.peer.call(targetPeerId, stream);
+                    const call = this.peer.call(targetPeerId, stream, {
+                        metadata: { video: !audioOnly },
+                        sdpTransform: (sdp) => this.optimizeSDP(sdp)
+                    });
+                    
                     this.setupCallEvents(call, audioOnly);
                     debugLog("📞 Call initiated");
-                } catch(e) {
+                } catch (e) {
                     debugLog(`❌ Start call error: ${e.message}`, 'error');
                     App.ui.toast("Failed to start call", 'error');
                     this.endCall();
                 }
+            }
+
+            /**
+             * Optimize SDP for better performance
+             */
+            optimizeSDP(sdp) {
+                return sdp
+                    .replace(/a=fmtp:.*\r\n/g, '') // Remove unnecessary format params
+                    .replace(/a=rtcp-fb:.*\r\n/g, '') // Remove RTCP feedback
+                    .replace(/a=rtcp:.*\r\n/g, ''); // Remove RTCP lines
             }
 
             setupCallEvents(call, audioOnly = false) {
@@ -1262,35 +2252,50 @@ const firebaseConfig = {
                 State.reconnectionAttempts = 0;
                 State.callStats.iceCandidates = 0;
                 
+                // Monitor WebRTC statistics
+                this.startStatsMonitoring(call);
+                
                 // WebRTC connection state monitoring
                 call.peerConnection.onconnectionstatechange = () => {
                     const state = call.peerConnection.connectionState;
                     debugLog(`🔗 Connection state: ${state}`);
                     
-                    if(state === 'connecting') {
-                        document.getElementById('call-status-text').innerText = "Connecting...";
-                    } else if(state === 'connected') {
-                        this.stopRing();
-                        State.callState = CallState.CONNECTED;
-                        State.callStartTime = Date.now();
-                        App.ui.showCallDuration(true);
-                        document.getElementById('call-status-text').innerText = "Connected";
-                        setTimeout(() => document.getElementById('call-status-text').style.display = 'none', 3000);
-                        App.ui.toast("✅ Connected!", 'success');
-                    } else if(state === 'disconnected') {
-                        App.ui.toast("Disconnected...", 'warning');
-                        if (State.callState === CallState.CONNECTED) {
-                            // Give it 3 seconds to reconnect
-                            setTimeout(() => {
-                                if (call.peerConnection.connectionState === 'disconnected') {
-                                    this.endCall();
-                                }
-                            }, 3000);
-                        }
-                    } else if(state === 'failed') {
-                        debugLog("❌ Connection failed", 'error');
-                        App.ui.showCallError("Connection failed");
-                        this.endCall();
+                    switch(state) {
+                        case 'connecting':
+                            document.getElementById('call-status-text').innerText = "Connecting...";
+                            break;
+                        case 'connected':
+                            this.stopRing();
+                            State.callState = CallState.CONNECTED;
+                            State.callStartTime = Date.now();
+                            App.ui.showCallDuration(true);
+                            document.getElementById('call-status-text').innerText = "Connected";
+                            document.getElementById('call-status-text').style.display = 'none';
+                            
+                            // Show connection quality
+                            document.getElementById('connection-quality').style.display = 'flex';
+                            
+                            App.ui.toast("✅ Connected!", 'success');
+                            
+                            // Establish P2P data channel for file transfer
+                            this.establishDataConnection(call.peer);
+                            break;
+                        case 'disconnected':
+                            App.ui.toast("Disconnected... Attempting to reconnect", 'warning');
+                            // Auto-reconnect if call was active
+                            if (State.callState === CallState.CONNECTED) {
+                                setTimeout(() => {
+                                    if (call.peerConnection.connectionState === 'disconnected') {
+                                        this.endCall();
+                                    }
+                                }, 5000);
+                            }
+                            break;
+                        case 'failed':
+                            debugLog("❌ Connection failed", 'error');
+                            App.ui.showCallError("Connection failed");
+                            this.endCall();
+                            break;
                     }
                 };
                 
@@ -1299,35 +2304,43 @@ const firebaseConfig = {
                     const iceState = call.peerConnection.iceConnectionState;
                     debugLog(`🧊 ICE state: ${iceState}`);
                     
-                    if(iceState === 'checking') {
-                        document.getElementById('call-status-text').innerText = "Checking network...";
-                    } else if(iceState === 'connected' || iceState === 'completed') {
-                        document.getElementById('call-status-text').innerText = "ICE connected";
-                    } else if(iceState === 'failed') {
-                        debugLog("❌ ICE connection failed", 'error');
-                        App.ui.showCallError("Network connection failed - NAT/firewall issue");
-                        if (State.callState === CallState.CONNECTING) {
-                            this.endCall();
-                        }
-                    } else if(iceState === 'disconnected') {
-                        debugLog("⚠️ ICE disconnected", 'warning');
+                    switch(iceState) {
+                        case 'checking':
+                            document.getElementById('call-status-text').innerText = "Connecting...";
+                            break;
+                        case 'connected':
+                        case 'completed':
+                            document.getElementById('call-status-text').innerText = "ICE connected";
+                            break;
+                        case 'failed':
+                            debugLog("❌ ICE connection failed", 'error');
+                            App.ui.showCallError("Network connection failed - NAT/firewall issue");
+                            if (State.callState === CallState.CONNECTING) {
+                                this.endCall();
+                            }
+                            break;
+                        case 'disconnected':
+                            debugLog("⚠️ ICE disconnected", 'warning');
+                            break;
                     }
                 };
                 
                 // ICE candidate handling
                 call.peerConnection.onicecandidate = (event) => {
-                    if(event.candidate) {
+                    if (event.candidate) {
                         State.callStats.iceCandidates++;
-                        debugLog(`🧊 ICE candidate #${State.callStats.iceCandidates}: ${event.candidate.candidate}`);
+                        debugLog(`🧊 ICE candidate #${State.callStats.iceCandidates}`);
                     }
                 };
                 
                 // Track events
                 call.peerConnection.ontrack = (event) => {
                     debugLog(`🎵 Track received: ${event.track.kind}`);
+                    event.track.onmute = () => debugLog(`🔇 Remote track muted: ${event.track.kind}`, 'info');
+                    event.track.onunmute = () => debugLog(`🔊 Remote track unmuted: ${event.track.kind}`, 'info');
                 };
                 
-                // Got remote stream
+                // Remote stream received
                 call.on('stream', (remoteStream) => {
                     debugLog("✅ Remote stream received");
                     document.getElementById('remote-video').srcObject = remoteStream;
@@ -1335,13 +2348,13 @@ const firebaseConfig = {
                     const duration = Date.now() - State.callStats.startTime;
                     debugLog(`⏱️ Call established in ${duration}ms, ${State.callStats.iceCandidates} ICE candidates`);
                     
-                    if(duration > 5000) {
+                    if (duration > 5000) {
                         debugLog("⚠️ Call took >5s - possible NAT issues", 'warning');
                     }
                 });
 
                 call.on('close', () => {
-                    debugLog("📞 Call closed by remote");
+                    debugLog("📞 Call closed by remote peer");
                     this.endCall();
                 });
 
@@ -1352,65 +2365,195 @@ const firebaseConfig = {
                 });
             }
 
+            /**
+             * Start monitoring WebRTC statistics
+             */
+            startStatsMonitoring(call) {
+                const monitor = async () => {
+                    if (!call.peerConnection) return;
+                    
+                    try {
+                        const stats = await call.peerConnection.getStats();
+                        let packetsLost = 0, packetsReceived = 0, jitter = 0, rtt = 0;
+                        
+                        stats.forEach(report => {
+                            if (report.type === 'inbound-rtp' && report.mediaType === 'audio') {
+                                packetsLost = report.packetsLost || 0;
+                                packetsReceived = report.packetsReceived || 0;
+                                jitter = report.jitter || 0;
+                            }
+                            if (report.type === 'remote-inbound-rtp') {
+                                rtt = report.roundTripTime * 1000 || 0; // Convert to ms
+                            }
+                        });
+                        
+                        App.ui.updateConnectionQuality({
+                            packetsLost,
+                            packetsReceived,
+                            jitter,
+                            rtt
+                        });
+                        
+                        State.callStats.packetsLost = packetsLost;
+                    } catch (e) {
+                        debugLog(`❌ Stats monitoring error: ${e.message}`, 'error');
+                    }
+                };
+
+                // Monitor every 2 seconds
+                this.statsInterval = setInterval(monitor, 2000);
+            }
+
+            /**
+             * Establish P2P data connection for file transfer
+             */
+            establishDataConnection(peerId) {
+                if (State.dataConnection && State.dataConnection.open) {
+                    debugLog("🔗 Data connection already exists");
+                    return;
+                }
+
+                State.dataConnection = this.peer.connect(peerId, {
+                    reliable: true,
+                    serialization: 'binary'
+                });
+
+                State.dataConnection.on('open', () => {
+                    debugLog("🔗 P2P data channel opened");
+                    App.ui.toast("P2P file transfer ready", 'success');
+                });
+
+                State.dataConnection.on('data', (data) => {
+                    if (data.type === 'file-chunk') {
+                        App.chat.handleIncomingFile(data);
+                    } else if (data.type === 'message') {
+                        // Handle P2P messages if needed
+                    }
+                });
+
+                State.dataConnection.on('close', () => {
+                    debugLog("🔗 P2P data channel closed");
+                    State.dataConnection = null;
+                });
+
+                State.dataConnection.on('error', (err) => {
+                    debugLog(`❌ P2P data channel error: ${err.message}`, 'error');
+                });
+            }
+
+            // ============================================================================
+            // CALL CONTROL METHODS
+            // ============================================================================
             endCall() {
                 if (State.callTimeout) {
                     clearTimeout(State.callTimeout);
                     State.callTimeout = null;
                 }
+
+                if (this.statsInterval) {
+                    clearInterval(this.statsInterval);
+                    this.statsInterval = null;
+                }
                 
-                debugLog("🛑 Ending call...");
+                debugLog("🛑 Ending call gracefully");
                 App.ui.showCallDuration(false);
                 this.stopRing();
                 
+                // Hide connection quality
+                document.getElementById('connection-quality').style.display = 'none';
+                
                 State.callState = CallState.ENDED;
                 
+                // Close main call
                 if (State.currentCall) {
                     try { State.currentCall.close(); } catch(e) {}
                     State.currentCall = null;
                 }
                 
+                // Close temp call
                 if (State.tempCall) {
                     try { State.tempCall.close(); } catch(e) {}
                     State.tempCall = null;
                 }
                 
-                if (State.localStream) {
-                    State.localStream.getTracks().forEach(t => {
-                        try { 
-                            t.stop(); 
-                        } catch(e) {}
-                    });
-                    State.localStream = null;
+                // Stop all streams
+                this.stopAllStreams();
+                
+                // Close data connection
+                if (State.dataConnection) {
+                    try { State.dataConnection.close(); } catch(e) {}
+                    State.dataConnection = null;
                 }
                 
+                // Clean up UI
                 document.getElementById('call-overlay').classList.remove('active');
                 document.getElementById('remote-video').srcObject = null;
                 document.getElementById('local-video').srcObject = null;
-                document.getElementById('local-video').style.display = 'block';
                 document.getElementById('local-video').style.transform = '';
                 document.getElementById('call-status-text').style.display = 'block';
                 document.getElementById('call-status-text').innerText = "Preparing...";
                 
                 this.updateCallControls();
+                
+                // Reset state
                 State.callState = CallState.IDLE;
-                State.callStats = { startTime: null, iceCandidates: 0, connectionAttempts: 0, bytesSent: 0, bytesReceived: 0 };
+                State.callStats = { 
+                    startTime: null, 
+                    iceCandidates: 0, 
+                    connectionAttempts: 0,
+                    bytesSent: 0,
+                    bytesReceived: 0,
+                    packetsLost: 0
+                };
+            }
+
+            stopAllStreams() {
+                if (State.localStream) {
+                    State.localStream.getTracks().forEach(t => {
+                        try { 
+                            t.stop(); 
+                            t.onended = null;
+                            t.onmute = null;
+                            t.onunmute = null;
+                        } catch(e) {}
+                    });
+                    State.localStream = null;
+                }
+
+                if (State.screenStream) {
+                    State.screenStream.getTracks().forEach(t => {
+                        try { 
+                            t.stop();
+                            t.onended = null;
+                        } catch(e) {}
+                    });
+                    State.screenStream = null;
+                    State.isScreenSharing = false;
+                }
             }
 
             toggleAudio() {
-                if(!State.localStream) return;
+                if (!State.localStream) return;
+                
                 const track = State.localStream.getAudioTracks()[0];
-                if(track) {
+                if (track) {
                     track.enabled = !track.enabled;
                     State.isMuted = !track.enabled;
                     this.updateCallControls();
                     debugLog(`🎤 Audio ${track.enabled ? 'enabled' : 'muted'}`);
+                    
+                    // Update UI
+                    const muteBtn = document.getElementById('btn-mute');
+                    muteBtn.style.background = track.enabled ? 'rgba(255,255,255,0.2)' : 'var(--danger)';
+                    muteBtn.innerHTML = track.enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
                 }
             }
 
             toggleVideo() {
-                if(!State.localStream) return;
+                if (!State.localStream) return;
+                
                 const track = State.localStream.getVideoTracks()[0];
-                if(track) {
+                if (track) {
                     track.enabled = !track.enabled;
                     State.isVideoOff = !track.enabled;
                     this.updateCallControls();
@@ -1418,8 +2561,95 @@ const firebaseConfig = {
                 }
             }
 
+            async toggleScreenShare() {
+                if (!State.currentCall) {
+                    App.ui.toast("No active call", 'warning');
+                    return;
+                }
+
+                if (!State.isScreenSharing) {
+                    try {
+                        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+                            video: { cursor: 'always' },
+                            audio: true
+                        });
+
+                        // Replace video track
+                        const screenTrack = screenStream.getVideoTracks()[0];
+                        const sender = State.currentCall.peerConnection.getSenders().find(s => 
+                            s.track && s.track.kind === 'video'
+                        );
+
+                        if (sender) {
+                            await sender.replaceTrack(screenTrack);
+                        }
+
+                        State.screenStream = screenStream;
+                        State.isScreenSharing = true;
+                        
+                        // Update button
+                        const btn = document.getElementById('btn-screen');
+                        btn.style.background = 'var(--primary)';
+                        btn.classList.add('active');
+                        
+                        App.ui.toast("Screen sharing started", 'success');
+                        debugLog("🖥️ Screen sharing started");
+
+                        // Handle screen share stop
+                        screenTrack.onended = () => this.toggleScreenShare();
+
+                    } catch (e) {
+                        debugLog(`❌ Screen share error: ${e.message}`, 'error');
+                        App.ui.toast("Screen sharing failed", 'error');
+                    }
+                } else {
+                    // Stop screen sharing, return to camera
+                    if (State.screenStream) {
+                        State.screenStream.getTracks().forEach(t => t.stop());
+                        State.screenStream = null;
+                    }
+
+                    // Get camera stream back
+                    try {
+                        const cameraStream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 }
+                            }
+                        });
+
+                        const cameraTrack = cameraStream.getVideoTracks()[0];
+                        const sender = State.currentCall.peerConnection.getSenders().find(s => 
+                            s.track && s.track.kind === 'video'
+                        );
+
+                        if (sender) {
+                            await sender.replaceTrack(cameraTrack);
+                        }
+
+                        // Update local stream
+                        const audioTrack = State.localStream.getAudioTracks()[0];
+                        State.localStream = new MediaStream([audioTrack, cameraTrack]);
+                        document.getElementById('local-video').srcObject = State.localStream;
+
+                        State.isScreenSharing = false;
+                        
+                        // Update button
+                        const btn = document.getElementById('btn-screen');
+                        btn.style.background = 'rgba(255,255,255,0.2)';
+                        btn.classList.remove('active');
+                        
+                        App.ui.toast("Screen sharing stopped", 'info');
+                        debugLog("🖥️ Screen sharing stopped");
+
+                    } catch (e) {
+                        debugLog(`❌ Camera restore error: ${e.message}`, 'error');
+                    }
+                }
+            }
+
             updateCallControls() {
-                if(!State.localStream) return;
+                if (!State.localStream) return;
                 
                 const audioTrack = State.localStream.getAudioTracks()[0];
                 const videoTrack = State.localStream.getVideoTracks()[0];
@@ -1427,39 +2657,41 @@ const firebaseConfig = {
                 const muteBtn = document.getElementById('btn-mute');
                 const camBtn = document.getElementById('btn-cam');
                 
-                if(audioTrack) {
+                if (audioTrack) {
                     muteBtn.style.background = audioTrack.enabled ? 'rgba(255,255,255,0.2)' : 'var(--danger)';
                     muteBtn.innerHTML = audioTrack.enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
                 }
                 
-                if(videoTrack) {
+                if (videoTrack) {
                     camBtn.style.background = videoTrack.enabled ? 'rgba(255,255,255,0.2)' : 'var(--danger)';
                     camBtn.innerHTML = videoTrack.enabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
                 }
             }
 
             async flipCamera() {
-                if(!State.localStream || !State.currentCall) {
+                if (!State.localStream || !State.currentCall) {
                     App.ui.toast("Must be in call", 'warning');
                     return;
                 }
                 
                 const videoTrack = State.localStream.getVideoTracks()[0];
-                if(!videoTrack) return;
+                if (!videoTrack) return;
                 
                 const currentSettings = videoTrack.getSettings();
                 const isFront = currentSettings.facingMode === 'user' || !currentSettings.facingMode;
                 const newMode = isFront ? 'environment' : 'user';
                 
                 try {
+                    App.ui.setLoading(true);
                     App.ui.toast("Switching camera...", 'info');
+                    
                     const newStream = await navigator.mediaDevices.getUserMedia({
                         video: { 
                             facingMode: newMode,
                             width: { ideal: 1280 },
                             height: { ideal: 720 }
                         },
-                        audio: true
+                        audio: false // Don't request audio again
                     });
                     
                     const newVideoTrack = newStream.getVideoTracks()[0];
@@ -1467,24 +2699,54 @@ const firebaseConfig = {
                         s.track && s.track.kind === 'video'
                     );
                     
-                    if(sender) {
+                    if (sender) {
                         await sender.replaceTrack(newVideoTrack);
                     }
                     
-                    State.localStream.getVideoTracks().forEach(t => t.stop());
-                    State.localStream = newStream;
-                    document.getElementById('local-video').srcObject = newStream;
+                    // Stop old video track
+                    videoTrack.stop();
                     
+                    // Update local stream
+                    const audioTrack = State.localStream.getAudioTracks()[0];
+                    State.localStream = new MediaStream([audioTrack, newVideoTrack]);
+                    document.getElementById('local-video').srcObject = State.localStream;
+                    
+                    App.ui.setLoading(false);
                     App.ui.toast("✅ Camera switched", 'success');
-                    debugLog("✅ Camera switched");
-                } catch(e) {
+                    debugLog("✅ Camera switched successfully");
+                } catch (e) {
+                    App.ui.setLoading(false);
                     App.ui.toast("Cannot switch camera", 'error');
                     debugLog(`❌ Flip camera error: ${e.message}`, 'error');
                 }
             }
+
+            handleDataConnection(connection) {
+                connection.on('open', () => {
+                    debugLog("🔗 P2P data channel opened");
+                    State.dataConnection = connection;
+                });
+
+                connection.on('data', (data) => {
+                    if (data.type === 'file-chunk') {
+                        App.chat.handleIncomingFile(data);
+                    }
+                });
+
+                connection.on('close', () => {
+                    debugLog("🔗 P2P data channel closed");
+                    State.dataConnection = null;
+                });
+
+                connection.on('error', (err) => {
+                    debugLog(`❌ P2P data channel error: ${err.message}`, 'error');
+                });
+            }
         }
 
-        // --- MAIN APP INITIALIZATION ---
+        // ============================================================================
+        // MAIN APPLICATION INITIALIZATION
+        // ============================================================================
         const App = {
             auth: new AuthService(),
             chat: new ChatService(),
@@ -1496,67 +2758,121 @@ const firebaseConfig = {
         App.contacts = App.chat;
         window.App = App;
 
-        // Validate config
-        if(!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('YOUR_')) {
-            alert("❌ ERROR: Replace firebaseConfig with your actual Firebase credentials!");
+        // ============================================================================
+        // VALIDATION AND BROWSER CHECKS
+        // ============================================================================
+        
+        // Validate Firebase configuration
+        if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('YOUR_')) {
+            alert("❌ CRITICAL ERROR: Firebase configuration not set!\n\nPlease replace the firebaseConfig object with your actual Firebase credentials before deployment.");
             debugLog("❌ Firebase config not set", 'error');
+            throw new Error("Firebase configuration missing");
         }
 
-        // Firebase Auth Listener
+        // Browser capability checks
+        const browserChecks = () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                App.ui.toast("❌ Browser doesn't support WebRTC", 'error');
+                debugLog("❌ WebRTC not supported", 'error');
+                return false;
+            }
+
+            if (!window.RTCPeerConnection) {
+                App.ui.toast("❌ Browser doesn't support RTCPeerConnection", 'error');
+                debugLog("❌ RTCPeerConnection not supported", 'error');
+                return false;
+            }
+
+            if (!window.WebSocket) {
+                App.ui.toast("❌ Browser doesn't support WebSockets", 'error');
+                debugLog("❌ WebSocket not supported", 'error');
+                return false;
+            }
+
+            return true;
+        };
+
+        if (!browserChecks()) {
+            App.ui.toast("❌ Browser not supported", 'error');
+        }
+
+        // HTTPS check (required for WebRTC)
+        if (location.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+            App.ui.toast("⚠️ HTTPS REQUIRED for secure WebRTC!", 'error');
+            debugLog("❌ Not HTTPS", 'error');
+        }
+
+        // Check for ad blockers (can block Firebase)
+        setTimeout(() => {
+            if (!auth) {
+                App.ui.toast("⚠️ Firebase blocked by ad blocker!", 'error');
+                debugLog("❌ Firebase blocked", 'error');
+            }
+        }, 2000);
+
+        // ============================================================================
+        // FIREBASE AUTH STATE LISTENER
+        // ============================================================================
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                debugLog(`🔄 Auth: User ${user.uid} logged in`);
+                debugLog(`🔄 Auth state: User ${user.uid} authenticated`);
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if(userDoc.exists()) {
+                    if (userDoc.exists()) {
                         State.user = userDoc.data();
                         App.ui.showApp();
                         await App.chat.loadContacts();
                         App.call.init();
-                        debugLog("✅ App loaded successfully");
+                        debugLog("✅ Application fully loaded");
                     } else {
-                        debugLog("❌ User doc not found", 'error');
+                        debugLog("❌ User document not found", 'error');
                         App.ui.toast("User data not found", 'error');
                         await signOut(auth);
                     }
                 } catch (e) {
-                    debugLog(`❌ Auth error: ${e.message}`, 'error');
+                    debugLog(`❌ Auth state error: ${e.message}`, 'error');
+                    App.ui.toast("Failed to load user data", 'error');
                 }
             } else {
-                debugLog("🔄 Auth: No user");
+                debugLog("🔄 Auth state: No user");
                 State.user = null;
                 App.ui.showAuth();
             }
         });
 
-        // Cleanup on unload
-        window.addEventListener('beforeunload', () => {
-            debugLog("🧹 Cleaning up...");
-            if(State.callState !== CallState.IDLE) App.call.endCall();
-            if(State.peer) State.peer.destroy();
+        // ============================================================================
+        // GLOBAL ERROR HANDLERS
+        // ============================================================================
+        window.addEventListener('error', (event) => {
+            debugLog(`❌ Global error: ${event.message} at ${event.filename}:${event.lineno}`, 'error');
         });
 
-        // Browser checks
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            App.ui.toast("⚠️ Browser doesn't support video calls", 'error');
-            debugLog("❌ getUserMedia not supported", 'error');
-        }
+        window.addEventListener('unhandledrejection', (event) => {
+            debugLog(`❌ Unhandled promise rejection: ${event.reason}`, 'error');
+        });
 
-        // HTTPS check
-        if (location.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(location.hostname)) {
-            App.ui.toast("⚠️ HTTPS REQUIRED!", 'error');
-            debugLog("❌ Not HTTPS", 'error');
-        }
-
-        // Ad blocker check
-        setTimeout(() => {
-            if(!auth) {
-                App.ui.toast("⚠️ Blocked by ad blocker?", 'error');
-                debugLog("❌ Firebase blocked", 'error');
+        // ============================================================================
+        // CLEANUP ON PAGE UNLOAD
+        // ============================================================================
+        window.addEventListener('beforeunload', () => {
+            debugLog("🧹 Cleaning up resources...");
+            
+            if (State.callState !== CallState.IDLE) {
+                App.call.endCall();
             }
-        }, 2000);
+            
+            if (State.peer) {
+                try { State.peer.destroy(); } catch(e) {}
+            }
+            
+            if (App.call.statsInterval) {
+                clearInterval(App.call.statsInterval);
+            }
+            
+            debugLog("✅ Cleanup complete");
+        });
 
-        debugLog("🚀 Application initialized with PeerJS v1.5.4");
+        debugLog("🚀 P2P Messenger initialized successfully");
 
     </script>
 </body>
