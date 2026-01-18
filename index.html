@@ -6,7 +6,7 @@
     <title>FamilyChat Pro | Secure Messenger</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
     <style>
         /* --- 1. CORE VARIABLES & RESET --- */
@@ -63,7 +63,7 @@
         .btn-primary:active { transform: scale(0.98); }
         .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
         .auth-switch { margin-top: 20px; color: var(--primary); cursor: pointer; font-size: 14px; }
-        
+
         /* --- 4. SIDEBAR (CONTACTS) --- */
         aside { width: var(--sidebar-width); border-right: 1px solid rgba(0,0,0,0.1); display: flex; flex-direction: column; background: var(--bg-panel); z-index: 10; height: 100%; }
         .header { height: var(--header-height); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-panel); border-bottom: 1px solid rgba(0,0,0,0.05); }
@@ -84,7 +84,7 @@
 
         /* --- 5. CHAT AREA --- */
         main { flex: 1; display: flex; flex-direction: column; background: var(--bg-chat); position: relative; height: 100%; }
-        main::before { content: ""; position: absolute; inset: 0; opacity: 0.4; background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239ca3af' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E"); pointer-events: none; }
+        main::before { content: ""; position: absolute; inset: 0; opacity: 0.4; background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg '%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239ca3af' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E"); pointer-events: none; }
 
         .chat-header { background: var(--bg-panel); height: var(--header-height); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05); z-index: 5; }
         .chat-back-btn { display: none; margin-right: 15px; font-size: 20px; color: var(--text-main); }
@@ -121,6 +121,7 @@
         .ctrl-btn.active { background: white; color: #333; }
 
         .call-status-pill { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 30px; color: white; font-size: 14px; z-index: 3003; backdrop-filter: blur(5px); }
+        .call-duration { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); padding: 6px 16px; border-radius: 30px; color: white; font-size: 12px; z-index: 3003; backdrop-filter: blur(5px); }
 
         /* --- 7. INCOMING CALL MODAL --- */
         #incoming-modal { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-150%); background: rgba(32, 44, 51, 0.95); width: 90%; max-width: 400px; padding: 20px; border-radius: 16px; z-index: 4000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between; color: white; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(10px); }
@@ -152,20 +153,18 @@
         .toast { display: inline-block; background: #333; color: white; padding: 12px 24px; border-radius: 30px; margin-top: 10px; opacity: 0; transition: 0.3s; transform: translateY(20px); font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .toast.visible { opacity: 1; transform: translateY(0); }
 
-        /* --- 10. STATUS INDICATORS --- */
-        .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .status-online { background: var(--success); }
-        .status-offline { background: var(--text-sub); }
-        .status-busy { background: var(--danger); }
+        /* --- 10. LOADING SPINNER --- */
+        .loading-spinner { border: 2px solid var(--text-sub); border-top: 2px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* --- 11. DEBUG PANEL --- */
-        #debug-panel { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.9); color: #0f0; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 11px; z-index: 9999; max-width: 350px; max-height: 200px; overflow-y: auto; display: none; }
-        #debug-panel.show { display: block; }
+        /* --- 11. DEBUG INFO --- */
+        #debug-info { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.9); color: #0f0; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 11px; z-index: 9999; max-width: 350px; max-height: 200px; overflow-y: auto; display: none; }
+        #debug-info.show { display: block; }
     </style>
 </head>
 <body>
 
-    <div id="debug-panel"></div>
+    <div id="debug-info"></div>
 
     <div id="auth-view">
         <div class="auth-card">
@@ -188,9 +187,9 @@
             </div>
             
             <div style="margin-top: 20px; font-size: 12px; color: var(--text-sub);">
-                ⚠️ Video calls require HTTPS or localhost<br>
-                <button type="button" onclick="App.ui.toggleDebugPanel()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 12px;">
-                    <i class="fas fa-bug"></i> Debug
+                ⚠️ Check Firebase config & rules<br>
+                <button type="button" onclick="App.ui.toggleDebug()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 12px;">
+                    <i class="fas fa-bug"></i> Debug Mode
                 </button>
             </div>
         </div>
@@ -202,12 +201,7 @@
             <div class="header">
                 <div class="flex center" style="gap: 12px; cursor: pointer;" onclick="App.ui.showProfileSettings()">
                     <div id="my-avatar" class="avatar"></div>
-                    <div class="flex flex-col">
-                        <div style="font-weight: 600;" id="my-nick"></div>
-                        <div style="font-size: 11px; color: var(--text-sub);">
-                            <span class="status-indicator status-online"></span>Online
-                        </div>
-                    </div>
+                    <div style="font-weight: 600;" id="my-nick"></div>
                 </div>
                 <div class="flex" style="gap: 15px;">
                     <button class="btn-icon" onclick="App.ui.toggleTheme()"><i class="fas fa-adjust"></i></button>
@@ -239,15 +233,12 @@
                         <div id="chat-avatar" class="avatar" style="width: 36px; height: 36px; margin-right: 10px; font-size: 14px;"></div>
                         <div>
                             <div id="chat-name" style="font-weight: 600; font-size: 16px;"></div>
-                            <div id="chat-status" style="font-size: 12px; color: var(--text-sub);">
-                                <span class="status-indicator status-offline"></span>Offline
-                            </div>
+                            <div id="chat-status" style="font-size: 12px; color: var(--text-sub);">Offline</div>
                         </div>
                     </div>
                 </div>
                 <div class="chat-actions flex">
                     <i class="fas fa-video" onclick="App.call.startCall()" title="Start video call"></i>
-                    <i class="fas fa-phone" onclick="App.call.startCall(true)" title="Start audio call" style="margin-left: 15px;"></i>
                 </div>
             </div>
 
@@ -285,6 +276,7 @@
 
     <div id="call-overlay">
         <div class="call-status-pill" id="call-status-text">Preparing...</div>
+        <div class="call-duration" id="call-duration"></div>
         
         <div class="video-grid">
             <video id="remote-video" autoplay playsinline></video>
@@ -292,10 +284,10 @@
         </div>
 
         <div class="call-controls">
-            <button class="ctrl-btn" onclick="App.call.toggleAudio()" id="btn-mute" title="Toggle audio"><i class="fas fa-microphone"></i></button>
-            <button class="ctrl-btn bg-red" onclick="App.call.endCall()" title="End call"><i class="fas fa-phone-slash"></i></button>
-            <button class="ctrl-btn" onclick="App.call.toggleVideo()" id="btn-cam" title="Toggle video"><i class="fas fa-video"></i></button>
-            <button class="ctrl-btn" onclick="App.call.flipCamera()" id="btn-flip" title="Switch camera"><i class="fas fa-camera-rotate"></i></button>
+            <button class="ctrl-btn" onclick="App.call.toggleAudio()" id="btn-mute"><i class="fas fa-microphone"></i></button>
+            <button class="ctrl-btn bg-red" onclick="App.call.endCall()"><i class="fas fa-phone-slash"></i></button>
+            <button class="ctrl-btn" onclick="App.call.toggleVideo()" id="btn-cam"><i class="fas fa-video"></i></button>
+            <button class="ctrl-btn" onclick="App.call.flipCamera()" id="btn-flip"><i class="fas fa-camera-rotate"></i></button>
         </div>
     </div>
 
@@ -308,7 +300,7 @@
         import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, serverTimestamp, doc, setDoc, getDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js";
 
-        // --- FIREBASE CONFIG - ВАЖНО: ЗАМЕНИТЕ НА ВАШИ ДАННЫЕ!!! ---
+        // --- CRITICAL: REPLACE WITH YOUR FIREBASE CONFIG ---
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDXsvsaG8IdcjZv4iG4WHjPneGvcxywuTk",
@@ -321,8 +313,8 @@ const firebaseConfig = {
 };
 
         // Debug logger
-        function debugLog(message, type = 'info') {
-            const panel = document.getElementById('debug-panel');
+        window.debugLog = function(message, type = 'info') {
+            const panel = document.getElementById('debug-info');
             if (!panel.classList.contains('show')) return;
             
             const timestamp = new Date().toLocaleTimeString();
@@ -331,7 +323,7 @@ const firebaseConfig = {
             panel.scrollTop = panel.scrollHeight;
             
             console.log(`[${type.toUpperCase()}] ${message}`);
-        }
+        };
 
         // Initialize Firebase
         let app, auth, db, storage;
@@ -343,7 +335,7 @@ const firebaseConfig = {
             debugLog("✅ Firebase initialized successfully");
         } catch(e) {
             debugLog(`❌ Firebase init error: ${e.message}`, 'error');
-            alert("Firebase initialization failed. Check config!");
+            alert("Firebase initialization failed. Check console.");
         }
 
         /**
@@ -360,12 +352,31 @@ const firebaseConfig = {
             currentCall: null,
             localStream: null,
             unsubscribeChat: null,
-            isCalling: false,
-            tempCall: null,
-            callStats: { startTime: null, iceCandidates: 0 }
+            callState: 'idle', // 'idle', 'connecting', 'receiving', 'connected', 'ended'
+            isMuted: false,
+            isVideoOff: false,
+            callStartTime: null,
+            callDurationInterval: null,
+            reconnectionAttempts: 0,
+            maxReconnectionAttempts: 5,
+            callStats: { 
+                startTime: null, 
+                iceCandidates: 0, 
+                connectionAttempts: 0,
+                bytesSent: 0,
+                bytesReceived: 0
+            }
         };
 
-        // --- UI MANAGER: Handles DOM manipulation, Themes, Toasts ---
+        const CallState = {
+            IDLE: 'idle',
+            CONNECTING: 'connecting',
+            RECEIVING: 'receiving',
+            CONNECTED: 'connected',
+            ENDED: 'ended'
+        };
+
+        // --- UI MANAGER ---
         class UIManager {
             constructor() {
                 this.dom = {
@@ -377,6 +388,7 @@ const firebaseConfig = {
                     authLoading: document.getElementById('auth-loading'),
                     authBtnText: document.getElementById('auth-btn-text')
                 };
+                this.initTheme();
             }
 
             toast(msg, type = 'info') {
@@ -414,7 +426,7 @@ const firebaseConfig = {
                 const next = current === 'dark' ? 'light' : 'dark';
                 body.setAttribute('data-theme', next);
                 localStorage.setItem('theme', next);
-                this.toast(`Theme changed to ${next}`, 'success');
+                this.toast(`Theme: ${next}`, 'success');
             }
 
             initTheme() {
@@ -427,7 +439,6 @@ const firebaseConfig = {
                 this.dom.app.classList.remove('hidden');
                 document.getElementById('my-nick').textContent = State.user.nickname;
                 document.getElementById('my-avatar').textContent = State.user.nickname[0].toUpperCase();
-                debugLog("✅ App UI shown");
             }
 
             showAuth() {
@@ -441,32 +452,54 @@ const firebaseConfig = {
                 document.getElementById('chat-avatar').textContent = contact.nickname[0].toUpperCase();
                 this.dom.inputArea.classList.remove('hidden');
                 this.dom.msgArea.innerHTML = '';
-                debugLog(`✅ Chat opened with: ${contact.nickname}`);
             }
 
             closeChat() {
                 document.body.classList.remove('chat-open');
                 State.activeContact = null;
-                if(State.unsubscribeChat) State.unsubscribeChat();
-                debugLog("✅ Chat closed");
+                if(State.unsubscribeChat) {
+                    State.unsubscribeChat();
+                    State.unsubscribeChat = null;
+                }
             }
 
             showProfileSettings() {
                 this.toast("Profile settings coming soon!");
             }
 
-            toggleDebugPanel() {
-                const panel = document.getElementById('debug-panel');
+            toggleDebug() {
+                const panel = document.getElementById('debug-info');
                 panel.classList.toggle('show');
+                debugLog("Debug panel toggled");
             }
 
             showCallError(message) {
-                this.toast(`Call error: ${message}`, 'error');
+                this.toast(`Call: ${message}`, 'error');
                 debugLog(`❌ Call error: ${message}`, 'error');
+            }
+
+            updateCallDuration() {
+                if (!State.callStartTime) return;
+                const elapsed = Math.floor((Date.now() - State.callStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                const durationText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('call-duration').textContent = durationText;
+            }
+
+            showCallDuration(visible) {
+                document.getElementById('call-duration').style.display = visible ? 'block' : 'none';
+                if (visible && !State.callDurationInterval) {
+                    State.callDurationInterval = setInterval(() => this.updateCallDuration(), 1000);
+                } else if (!visible && State.callDurationInterval) {
+                    clearInterval(State.callDurationInterval);
+                    State.callDurationInterval = null;
+                    document.getElementById('call-duration').textContent = '00:00';
+                }
             }
         }
 
-        // --- AUTH SERVICE: Login, Register, Logout ---
+        // --- AUTH SERVICE ---
         class AuthService {
             constructor() {
                 this.isRegistering = false;
@@ -480,8 +513,6 @@ const firebaseConfig = {
                 document.getElementById('auth-btn-text').textContent = btnText;
                 document.getElementById('auth-switch-text').textContent = switchText;
                 document.getElementById('auth-error').style.display = 'none';
-                
-                debugLog(`Mode changed to: ${this.isRegistering ? 'register' : 'login'}`);
             }
 
             async login() {
@@ -489,17 +520,17 @@ const firebaseConfig = {
                 const pass = document.getElementById('auth-pass').value;
 
                 if(!nick || !pass) {
-                    this.showError("Please fill all fields");
+                    this.showError("Fill all fields");
                     return;
                 }
                 
                 if(nick.length < 3) {
-                    this.showError("Nickname must be at least 3 characters");
+                    this.showError("Nickname min 3 chars");
                     return;
                 }
                 
                 if(pass.length < 6) {
-                    this.showError("Password must be at least 6 characters");
+                    this.showError("Password min 6 chars");
                     return;
                 }
 
@@ -511,18 +542,18 @@ const firebaseConfig = {
                     document.getElementById('auth-error').style.display = 'none';
 
                     if (this.isRegistering) {
-                        debugLog("🔍 Checking nickname availability...");
+                        debugLog("🔍 Checking nickname...");
                         const q = query(collection(db, "users"), where("nickname", "==", nick));
                         const check = await getDocs(q);
                         
                         if (!check.empty) {
-                            throw new Error("This nickname is already taken. Choose another one.");
+                            throw new Error("Nickname taken!");
                         }
 
-                        debugLog("👤 Creating Firebase Auth user...");
+                        debugLog("👤 Creating Auth user...");
                         const cred = await createUserWithEmailAndPassword(auth, email, pass);
                         
-                        debugLog("📝 Creating Firestore user document...");
+                        debugLog("📝 Creating Firestore doc...");
                         await setDoc(doc(db, "users", cred.user.uid), {
                             uid: cred.user.uid,
                             nickname: nick,
@@ -532,14 +563,13 @@ const firebaseConfig = {
                         });
                         
                         await updateProfile(cred.user, { displayName: nick });
-                        debugLog("✅ Registration successful!");
                     } else {
                         debugLog("🔐 Signing in...");
                         await signInWithEmailAndPassword(auth, email, pass);
-                        debugLog("✅ Login successful!");
                     }
+                    debugLog("✅ Auth success!");
                 } catch (e) {
-                    debugLog(`❌ Auth error: ${e.code} - ${e.message}`, 'error');
+                    debugLog(`❌ Auth error: ${e.code}`, 'error');
                     this.handleAuthError(e);
                 } finally {
                     App.ui.setLoading(false);
@@ -552,50 +582,30 @@ const firebaseConfig = {
             }
 
             handleAuthError(error) {
-                let userMessage = "Authentication failed";
-                
+                let msg = "Auth failed";
                 switch(error.code) {
-                    case 'auth/network-request-failed':
-                        userMessage = "Network error. Check internet connection and Firebase config.";
-                        break;
-                    case 'auth/invalid-email':
-                        userMessage = "Invalid email format. Use only letters/numbers in nickname.";
-                        break;
-                    case 'auth/user-not-found':
-                        userMessage = "Account not found. Create a new account.";
-                        break;
-                    case 'auth/wrong-password':
-                        userMessage = "Wrong password. Try again.";
-                        break;
-                    case 'auth/email-already-in-use':
-                        userMessage = "Nickname already registered.";
-                        break;
-                    case 'auth/too-many-requests':
-                        userMessage = "Too many attempts. Try again later.";
-                        break;
-                    case 'auth/operation-not-allowed':
-                        userMessage = "Email auth not enabled in Firebase Console.";
-                        break;
-                    case 'auth/api-key-not-valid':
-                        userMessage = "Invalid Firebase API key. Check config.";
-                        break;
-                    default:
-                        userMessage = error.message.replace("Firebase: ", "").substring(0, 100);
+                    case 'auth/network-request-failed': msg = "Network error"; break;
+                    case 'auth/invalid-email': msg = "Invalid email format"; break;
+                    case 'auth/user-not-found': msg = "Account not found"; break;
+                    case 'auth/wrong-password': msg = "Wrong password"; break;
+                    case 'auth/email-already-in-use': msg = "Nickname taken"; break;
+                    case 'auth/too-many-requests': msg = "Too many attempts"; break;
+                    case 'auth/operation-not-allowed': msg = "Email auth not enabled"; break;
+                    case 'auth/api-key-not-valid': msg = "Invalid API key"; break;
+                    default: msg = error.message.substring(0, 50);
                 }
-                
-                this.showError(userMessage);
+                this.showError(msg);
             }
 
             showError(message) {
                 const errDiv = document.getElementById('auth-error');
                 errDiv.style.display = 'block';
                 errDiv.textContent = message;
-                debugLog(`❌ Auth error shown: ${message}`, 'error');
             }
 
             logout() {
                 if(State.currentCall) {
-                    debugLog("📞 Ending call before logout...");
+                    debugLog("📞 Ending call before logout");
                     App.call.endCall();
                 }
                 
@@ -604,7 +614,6 @@ const firebaseConfig = {
                     window.location.reload();
                 }).catch(e => {
                     debugLog(`❌ Logout error: ${e.message}`, 'error');
-                    App.ui.toast("Logout failed", 'error');
                 });
             }
         }
@@ -620,7 +629,49 @@ const firebaseConfig = {
             }
 
             initVideoDrag() {
-                // ... (drag code remains same)
+                let isDragging = false;
+                let currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
+                const video = document.getElementById('local-video');
+
+                function dragStart(e) {
+                    if (e.type === "touchstart") {
+                        initialX = e.touches[0].clientX - xOffset;
+                        initialY = e.touches[0].clientY - yOffset;
+                    } else {
+                        initialX = e.clientX - xOffset;
+                        initialY = e.clientY - yOffset;
+                    }
+                    if (e.target === video) isDragging = true;
+                }
+
+                function dragEnd(e) {
+                    initialX = currentX;
+                    initialY = currentY;
+                    isDragging = false;
+                }
+
+                function drag(e) {
+                    if (isDragging) {
+                        e.preventDefault();
+                        if (e.type === "touchmove") {
+                            currentX = e.touches[0].clientX - initialX;
+                            currentY = e.touches[0].clientY - initialY;
+                        } else {
+                            currentX = e.clientX - initialX;
+                            currentY = e.clientY - initialY;
+                        }
+                        xOffset = currentX;
+                        yOffset = currentY;
+                        video.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                    }
+                }
+
+                video.addEventListener('mousedown', dragStart);
+                video.addEventListener('mouseup', dragEnd);
+                video.addEventListener('mousemove', drag);
+                video.addEventListener('touchstart', dragStart);
+                video.addEventListener('touchend', dragEnd);
+                video.addEventListener('touchmove', drag);
             }
 
             async loadContacts() {
@@ -652,7 +703,6 @@ const firebaseConfig = {
                             this.renderContactItem(contact);
                         });
                     }
-                    debugLog(`✅ Loaded ${State.user.contacts.length} contacts`);
                 } catch (e) {
                     debugLog(`❌ Load contacts error: ${e.message}`, 'error');
                     App.ui.toast("Error loading contacts", 'error');
@@ -695,7 +745,7 @@ const firebaseConfig = {
                 }
 
                 App.ui.toast("Searching...");
-                debugLog(`🔍 Searching for user: ${val}`);
+                debugLog(`🔍 Searching for: ${val}`);
                 
                 try {
                     const q = query(collection(db, "users"), where("nickname", "==", val));
@@ -750,7 +800,10 @@ const firebaseConfig = {
                 const chatId = this.getChatId(State.user.uid, contact.uid);
                 const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt", "asc"));
 
-                if(State.unsubscribeChat) State.unsubscribeChat();
+                if(State.unsubscribeChat) {
+                    State.unsubscribeChat();
+                    State.unsubscribeChat = null;
+                }
 
                 State.unsubscribeChat = onSnapshot(q, (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
@@ -789,7 +842,6 @@ const firebaseConfig = {
                 const area = document.getElementById('messages-area');
                 area.appendChild(div);
                 area.scrollTop = area.scrollHeight;
-                debugLog(`✅ Message rendered: ${msg.text?.substring(0, 30)}...`);
             }
 
             escapeHtml(text) {
@@ -817,12 +869,12 @@ const firebaseConfig = {
                 };
 
                 try {
-                    debugLog(`📤 Sending message to chat: ${chatId}`);
+                    debugLog(`📤 Sending message...`);
                     await addDoc(collection(db, "chats", chatId, "messages"), payload);
                     if(!fileData) input.value = '';
                     debugLog("✅ Message sent");
                 } catch (e) {
-                    debugLog(`❌ Send message error: ${e.message}`, 'error');
+                    debugLog(`❌ Send error: ${e.message}`, 'error');
                     App.ui.toast("Failed to send message", 'error');
                 }
             }
@@ -847,7 +899,7 @@ const firebaseConfig = {
                     const type = file.type.startsWith('image/') ? 'image' : 'file';
                     await this.sendMessage({ url, type, name: file.name });
                     App.ui.toast("File uploaded!", 'success');
-                    debugLog("✅ File uploaded successfully");
+                    debugLog("✅ File uploaded");
                 } catch(e) {
                     debugLog(`❌ Upload error: ${e.message}`, 'error');
                     App.ui.toast("Upload failed", 'error');
@@ -858,21 +910,24 @@ const firebaseConfig = {
             }
         }
 
-        // --- VIDEO CALL SERVICE (PeerJS + Web Audio API) ---
+        // --- VIDEO CALL SERVICE ---
         class CallService {
             constructor() {
                 this.audioCtx = null;
                 this.oscillator = null;
                 this.ringInterval = null;
-                this.reconnectionAttempts = 0;
-                this.maxReconnectionAttempts = 3;
+                // PRODUCTION-READY ICE SERVERS
                 this.iceServers = [
+                    // RELIABLE STUN SERVERS
                     { urls: 'stun:stun.l.google.com:19302' },
                     { urls: 'stun:stun1.l.google.com:19302' },
                     { urls: 'stun:stun2.l.google.com:19302' },
                     { urls: 'stun:stun3.l.google.com:19302' },
                     { urls: 'stun:stun4.l.google.com:19302' },
-                    // Free TURN server from OpenRelay (use with caution)
+                    { urls: 'stun:stun.nextcloud.com:443' },
+                    { urls: 'stun:stunserver.stunprotocol.org:3478' },
+                    { urls: 'stun:stun.cloudflare.com:3478' },
+                    // FREE TURN SERVERS (REPLACE IN PRODUCTION)
                     {
                         urls: 'turn:openrelay.metered.ca:80',
                         username: 'openrelayproject',
@@ -882,13 +937,18 @@ const firebaseConfig = {
                         urls: 'turn:openrelay.metered.ca:443',
                         username: 'openrelayproject',
                         credential: 'openrelayproject'
+                    },
+                    {
+                        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                        username: 'openrelayproject',
+                        credential: 'openrelayproject'
                     }
                 ];
             }
 
             init() {
                 const safeId = this.generatePeerId(State.user.nickname, State.user.uid);
-                debugLog(`🎬 Initializing PeerJS with ID: ${safeId}`);
+                debugLog(`🎬 Initializing PeerJS v1.5.4: ${safeId}`);
                 
                 this.peer = new Peer(safeId, {
                     host: '0.peerjs.com',
@@ -897,7 +957,11 @@ const firebaseConfig = {
                     debug: 3,
                     config: {
                         iceServers: this.iceServers,
-                        iceCandidatePoolSize: 10
+                        iceCandidatePoolSize: 10,
+                        iceTransportPolicy: 'all',
+                        rtcpMuxPolicy: 'require',
+                        tcpCandidatePolicy: 'enabled',
+                        bundlePolicy: 'max-bundle'
                     }
                 });
 
@@ -912,100 +976,118 @@ const firebaseConfig = {
             setupPeerEvents() {
                 this.peer.on('open', (id) => {
                     debugLog(`✅ PeerJS connected: ${id}`);
-                    App.ui.toast("Messenger ready", 'success');
-                    this.reconnectionAttempts = 0;
+                    App.ui.toast("✅ Messenger ready!", 'success');
+                    State.reconnectionAttempts = 0;
                 });
 
                 this.peer.on('call', (call) => {
-                    debugLog(`📞 Incoming call from: ${call.peer}`);
+                    debugLog(`📞 Incoming call: ${call.peer}`);
                     this.handleIncomingCall(call);
                 });
 
                 this.peer.on('error', (err) => {
-                    debugLog(`❌ PeerJS Error: ${err.type} - ${err.message}`, 'error');
-                    App.ui.toast(`Connection error: ${err.type}`, 'error');
+                    debugLog(`❌ PeerJS Error: ${err.type}`, 'error');
                     this.handlePeerError(err);
                 });
 
                 this.peer.on('disconnected', () => {
                     debugLog("⚠️ Peer disconnected");
-                    App.ui.toast("Connection lost. Reconnecting...", 'warning');
+                    App.ui.toast("Reconnecting...", 'warning');
                     this.attemptReconnection();
                 });
             }
 
             handlePeerError(err) {
+                let msg = "Connection error";
+                let showToast = true;
                 switch(err.type) {
-                    case 'unavailable-id':
-                        App.ui.toast("ID already in use. Please reload.", 'error');
+                    case 'unavailable-id': 
+                        msg = "ID in use - reloading...";
+                        setTimeout(() => location.reload(), 2000);
                         break;
-                    case 'network':
-                        App.ui.toast("Network error. Check connection.", 'error');
-                        break;
-                    case 'server-error':
-                        App.ui.toast("Server error. Please try again.", 'error');
-                        break;
-                    case 'browser-incompatible':
-                        App.ui.toast("Browser not supported. Use Chrome/Edge.", 'error');
-                        break;
+                    case 'network': msg = "Network error"; break;
+                    case 'server-error': msg = "Server error"; break;
+                    case 'browser-incompatible': 
+                        msg = "Browser not supported";
+                        App.ui.toast(msg, 'error');
+                        return;
+                    case 'webrtc': msg = "WebRTC error"; break;
+                    default: msg = err.message || 'Unknown error';
                 }
+                if (showToast) App.ui.toast(msg, 'error');
+                if (State.callState !== CallState.IDLE) this.endCall();
             }
 
             attemptReconnection() {
-                if(this.reconnectionAttempts < this.maxReconnectionAttempts) {
-                    this.reconnectionAttempts++;
-                    debugLog(`🔄 Reconnection attempt ${this.reconnectionAttempts}`);
+                if(State.reconnectionAttempts < State.maxReconnectionAttempts) {
+                    State.reconnectionAttempts++;
+                    debugLog(`🔄 Reconnecting... (${State.reconnectionAttempts}/${State.maxReconnectionAttempts})`);
                     setTimeout(() => {
                         this.peer.reconnect();
-                    }, 2000 * this.reconnectionAttempts);
+                    }, 3000 * State.reconnectionAttempts);
                 } else {
-                    App.ui.toast("Failed to reconnect. Please refresh.", 'error');
+                    App.ui.toast("Failed to reconnect", 'error');
+                    debugLog("❌ Max reconnection attempts reached", 'error');
+                    if (State.callState !== CallState.IDLE) this.endCall();
                 }
             }
 
-            playRing(type = 'incoming') {
+            async ensureAudioContext() {
                 if (!this.audioCtx) {
                     this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 }
-                
-                this.stopRing();
+                if (this.audioCtx.state === 'suspended') {
+                    await this.audioCtx.resume();
+                }
+                return this.audioCtx;
+            }
 
-                this.oscillator = this.audioCtx.createOscillator();
-                const gainNode = this.audioCtx.createGain();
+            async playRing(type = 'incoming') {
+                try {
+                    await this.ensureAudioContext();
+                    this.stopRing();
 
-                this.oscillator.connect(gainNode);
-                gainNode.connect(this.audioCtx.destination);
+                    this.oscillator = this.audioCtx.createOscillator();
+                    const gainNode = this.audioCtx.createGain();
 
-                if (type === 'incoming') {
-                    this.oscillator.type = 'sine';
-                    this.oscillator.frequency.setValueAtTime(800, this.audioCtx.currentTime);
-                    gainNode.gain.setValueAtTime(0, this.audioCtx.currentTime);
-                    
-                    const now = this.audioCtx.currentTime;
-                    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.1);
-                    gainNode.gain.linearRampToValueAtTime(0, now + 1.5);
-                    
-                    this.oscillator.start(now);
-                    this.oscillator.stop(now + 1.5);
-                    
-                    this.ringInterval = setInterval(() => {
-                         const osc = this.audioCtx.createOscillator();
-                         const gn = this.audioCtx.createGain();
-                         osc.connect(gn);
-                         gn.connect(this.audioCtx.destination);
-                         osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
-                         gn.gain.setValueAtTime(0, this.audioCtx.currentTime);
-                         gn.gain.linearRampToValueAtTime(0.3, this.audioCtx.currentTime + 0.1);
-                         gn.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 1.5);
-                         osc.start();
-                         osc.stop(this.audioCtx.currentTime + 1.5);
-                    }, 3000);
+                    this.oscillator.connect(gainNode);
+                    gainNode.connect(this.audioCtx.destination);
 
-                } else if (type === 'dialing') {
-                    this.oscillator.type = 'sine';
-                    this.oscillator.frequency.setValueAtTime(400, this.audioCtx.currentTime);
-                    gainNode.gain.setValueAtTime(0.1, this.audioCtx.currentTime);
-                    this.oscillator.start();
+                    if (type === 'incoming') {
+                        // Classic ringtone pattern
+                        this.oscillator.type = 'sine';
+                        this.oscillator.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+                        gainNode.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                        
+                        const now = this.audioCtx.currentTime;
+                        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.1);
+                        gainNode.gain.linearRampToValueAtTime(0, now + 1.5);
+                        
+                        this.oscillator.start(now);
+                        this.oscillator.stop(now + 1.5);
+                        
+                        this.ringInterval = setInterval(() => {
+                             const osc = this.audioCtx.createOscillator();
+                             const gn = this.audioCtx.createGain();
+                             osc.connect(gn);
+                             gn.connect(this.audioCtx.destination);
+                             osc.frequency.setValueAtTime(800, this.audioCtx.currentTime);
+                             gn.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                             gn.gain.linearRampToValueAtTime(0.3, this.audioCtx.currentTime + 0.1);
+                             gn.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 1.5);
+                             osc.start();
+                             osc.stop(this.audioCtx.currentTime + 1.5);
+                        }, 3000);
+
+                    } else if (type === 'dialing') {
+                        // Dialing tone
+                        this.oscillator.type = 'sine';
+                        this.oscillator.frequency.setValueAtTime(400, this.audioCtx.currentTime);
+                        gainNode.gain.setValueAtTime(0.1, this.audioCtx.currentTime);
+                        this.oscillator.start();
+                    }
+                } catch (e) {
+                    debugLog(`❌ Audio alert error: ${e.message}`, 'error');
                 }
             }
 
@@ -1026,64 +1108,54 @@ const firebaseConfig = {
                 try {
                     const constraints = {
                         video: audioOnly ? false : {
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 },
+                            width: { ideal: 1280, min: 640, max: 1920 },
+                            height: { ideal: 720, min: 480, max: 1080 },
+                            frameRate: { ideal: 30, min: 15 },
                             facingMode: 'user'
                         },
                         audio: {
                             echoCancellation: true,
                             noiseSuppression: true,
-                            autoGainControl: true
+                            autoGainControl: true,
+                            channelCount: { ideal: 1 },
+                            sampleRate: { ideal: 48000 }
                         }
                     };
 
-                    debugLog(`📹 Getting user media (audioOnly: ${audioOnly})`);
+                    debugLog(`📹 Requesting media (audioOnly: ${audioOnly})`);
                     const stream = await navigator.mediaDevices.getUserMedia(constraints);
                     State.localStream = stream;
                     document.getElementById('local-video').srcObject = stream;
-                    
-                    // Handle video element visibility
-                    const localVideo = document.getElementById('local-video');
-                    if(audioOnly) {
-                        localVideo.style.display = 'none';
-                    } else {
-                        localVideo.style.display = 'block';
-                    }
-                    
                     this.updateCallControls();
-                    debugLog("✅ Media access granted");
+                    debugLog("✅ Media granted");
                     
                     return stream;
                 } catch (e) {
-                    debugLog(`❌ Media access error: ${e.name} - ${e.message}`, 'error');
+                    debugLog(`❌ Media error: ${e.name}`, 'error');
                     
-                    let errorMsg = "Camera/mic access denied";
-                    if(e.name === 'NotAllowedError') {
-                        errorMsg = "Permission denied. Allow in browser settings.";
-                    } else if(e.name === 'NotFoundError') {
-                        errorMsg = "No camera/mic found.";
-                    } else if(e.name === 'NotReadableError') {
-                        errorMsg = "Device already in use.";
-                    } else if(e.name === 'NotSupportedError') {
-                        errorMsg = "Feature not supported on this device.";
-                    } else if(e.name === 'SecurityError') {
-                        errorMsg = "HTTPS required for camera/mic access!";
-                    }
+                    let msg = "Access denied";
+                    if(e.name === 'NotAllowedError') msg = "Permission denied!";
+                    else if(e.name === 'NotFoundError') msg = "No devices found";
+                    else if(e.name === 'NotReadableError') msg = "Device in use";
+                    else if(e.name === 'SecurityError') msg = "HTTPS required!";
+                    else if(e.name === 'OverconstrainedError') msg = "Device doesn't meet requirements";
                     
-                    App.ui.toast(errorMsg, 'error');
+                    App.ui.toast(msg, 'error');
                     throw e;
                 }
             }
 
             handleIncomingCall(call) {
-                if (State.currentCall) {
+                if (State.callState !== CallState.IDLE) {
                     debugLog("📞 Busy - rejecting incoming call");
                     call.close();
-                    App.ui.toast("You missed a call (busy)", 'warning');
+                    App.ui.toast("Missed call (busy)", 'warning');
                     return;
                 }
                 
-                this.tempCall = call;
+                State.callState = CallState.RECEIVING;
+                State.tempCall = call;
+                State.callStats.connectionAttempts++;
                 
                 const callerRaw = call.peer.split('_')[0];
                 document.getElementById('caller-name').innerText = callerRaw || 'Unknown';
@@ -1091,10 +1163,11 @@ const firebaseConfig = {
                 
                 document.getElementById('incoming-modal').classList.add('show');
                 this.playRing('incoming');
-                debugLog("📞 Incoming call modal shown");
+                debugLog("📞 Incoming modal shown");
                 
-                setTimeout(() => {
-                    if(this.tempCall && !State.currentCall) {
+                // Auto-reject after 30 seconds
+                State.callTimeout = setTimeout(() => {
+                    if(State.callState === CallState.RECEIVING) {
                         this.rejectCall();
                         App.ui.toast("Call timed out", 'warning');
                     }
@@ -1102,50 +1175,69 @@ const firebaseConfig = {
             }
 
             async acceptCall() {
-                if(!this.tempCall) return;
+                if(State.callState !== CallState.RECEIVING || !State.tempCall) {
+                    debugLog("❌ Invalid accept call state", 'error');
+                    return;
+                }
                 
+                clearTimeout(State.callTimeout);
                 this.stopRing();
                 document.getElementById('incoming-modal').classList.remove('show');
                 
                 try {
                     const stream = await this.getStream();
-                    this.tempCall.answer(stream);
-                    this.setupCallEvents(this.tempCall);
+                    State.tempCall.answer(stream);
+                    this.setupCallEvents(State.tempCall);
+                    State.callState = CallState.CONNECTING;
                     App.ui.toast("Connecting...", 'info');
-                    debugLog("📞 Call answered");
+                    debugLog("📞 Call accepted");
                 } catch (e) {
-                    debugLog(`❌ Accept call error: ${e.message}`, 'error');
+                    debugLog(`❌ Accept error: ${e.message}`, 'error');
+                    State.callState = CallState.IDLE;
                     this.rejectCall();
-                    App.ui.toast("Failed to accept call", 'error');
+                    App.ui.toast("Failed to accept", 'error');
                 }
             }
 
             rejectCall() {
+                if (State.callTimeout) {
+                    clearTimeout(State.callTimeout);
+                    State.callTimeout = null;
+                }
+                
                 this.stopRing();
                 document.getElementById('incoming-modal').classList.remove('show');
-                if(this.tempCall) {
-                    this.tempCall.close();
-                    this.tempCall = null;
+                
+                if(State.tempCall) {
+                    try { State.tempCall.close(); } catch(e) {}
+                    State.tempCall = null;
                 }
+                
+                if (State.callState === CallState.RECEIVING) {
+                    State.callState = CallState.IDLE;
+                }
+                
                 debugLog("📞 Call rejected");
             }
 
             async startCall(audioOnly = false) {
                 if(!State.activeContact) {
-                    App.ui.toast("Select a contact first", 'error');
+                    App.ui.toast("Select contact first", 'error');
                     return;
                 }
                 
-                if(State.currentCall) {
-                    App.ui.toast("Already in a call", 'warning');
+                if(State.callState !== CallState.IDLE) {
+                    App.ui.toast("Already in call", 'warning');
                     return;
                 }
 
                 const targetPeerId = this.generatePeerId(State.activeContact.nickname, State.activeContact.uid);
-                debugLog(`🎯 Starting call to: ${targetPeerId} (audioOnly: ${audioOnly})`);
+                debugLog(`🎯 Calling: ${targetPeerId}`);
+                
+                State.callStats.connectionAttempts++;
 
                 try {
-                    App.ui.toast("Initializing call...", 'info');
+                    App.ui.toast("Starting call...", 'info');
                     const stream = await this.getStream(audioOnly);
                     
                     document.getElementById('call-overlay').classList.add('active');
@@ -1153,10 +1245,11 @@ const firebaseConfig = {
                     document.getElementById('call-status-text').style.display = 'block';
                     this.playRing('dialing');
                     State.callStats.startTime = Date.now();
+                    State.callState = CallState.CONNECTING;
 
                     const call = this.peer.call(targetPeerId, stream);
                     this.setupCallEvents(call, audioOnly);
-
+                    debugLog("📞 Call initiated");
                 } catch(e) {
                     debugLog(`❌ Start call error: ${e.message}`, 'error');
                     App.ui.toast("Failed to start call", 'error');
@@ -1166,17 +1259,10 @@ const firebaseConfig = {
 
             setupCallEvents(call, audioOnly = false) {
                 State.currentCall = call;
-                this.reconnectionAttempts = 0;
+                State.reconnectionAttempts = 0;
+                State.callStats.iceCandidates = 0;
                 
-                // Monitor ICE candidates
-                call.peerConnection.onicecandidate = (event) => {
-                    if(event.candidate) {
-                        State.callStats.iceCandidates++;
-                        debugLog(`🧊 ICE candidate ${State.callStats.iceCandidates}: ${event.candidate.candidate}`);
-                    }
-                };
-                
-                // Monitor connection state
+                // WebRTC connection state monitoring
                 call.peerConnection.onconnectionstatechange = () => {
                     const state = call.peerConnection.connectionState;
                     debugLog(`🔗 Connection state: ${state}`);
@@ -1184,27 +1270,74 @@ const firebaseConfig = {
                     if(state === 'connecting') {
                         document.getElementById('call-status-text').innerText = "Connecting...";
                     } else if(state === 'connected') {
+                        this.stopRing();
+                        State.callState = CallState.CONNECTED;
+                        State.callStartTime = Date.now();
+                        App.ui.showCallDuration(true);
                         document.getElementById('call-status-text').innerText = "Connected";
-                        setTimeout(() => {
-                            document.getElementById('call-status-text').style.display = 'none';
-                        }, 3000);
+                        setTimeout(() => document.getElementById('call-status-text').style.display = 'none', 3000);
+                        App.ui.toast("✅ Connected!", 'success');
                     } else if(state === 'disconnected') {
-                        App.ui.toast("Connection lost...", 'warning');
+                        App.ui.toast("Disconnected...", 'warning');
+                        if (State.callState === CallState.CONNECTED) {
+                            // Give it 3 seconds to reconnect
+                            setTimeout(() => {
+                                if (call.peerConnection.connectionState === 'disconnected') {
+                                    this.endCall();
+                                }
+                            }, 3000);
+                        }
                     } else if(state === 'failed') {
+                        debugLog("❌ Connection failed", 'error');
                         App.ui.showCallError("Connection failed");
                         this.endCall();
                     }
                 };
                 
+                // ICE connection state
+                call.peerConnection.oniceconnectionstatechange = () => {
+                    const iceState = call.peerConnection.iceConnectionState;
+                    debugLog(`🧊 ICE state: ${iceState}`);
+                    
+                    if(iceState === 'checking') {
+                        document.getElementById('call-status-text').innerText = "Checking network...";
+                    } else if(iceState === 'connected' || iceState === 'completed') {
+                        document.getElementById('call-status-text').innerText = "ICE connected";
+                    } else if(iceState === 'failed') {
+                        debugLog("❌ ICE connection failed", 'error');
+                        App.ui.showCallError("Network connection failed - NAT/firewall issue");
+                        if (State.callState === CallState.CONNECTING) {
+                            this.endCall();
+                        }
+                    } else if(iceState === 'disconnected') {
+                        debugLog("⚠️ ICE disconnected", 'warning');
+                    }
+                };
+                
+                // ICE candidate handling
+                call.peerConnection.onicecandidate = (event) => {
+                    if(event.candidate) {
+                        State.callStats.iceCandidates++;
+                        debugLog(`🧊 ICE candidate #${State.callStats.iceCandidates}: ${event.candidate.candidate}`);
+                    }
+                };
+                
+                // Track events
+                call.peerConnection.ontrack = (event) => {
+                    debugLog(`🎵 Track received: ${event.track.kind}`);
+                };
+                
+                // Got remote stream
                 call.on('stream', (remoteStream) => {
                     debugLog("✅ Remote stream received");
-                    this.stopRing();
                     document.getElementById('remote-video').srcObject = remoteStream;
-                    App.ui.toast("Call connected!", 'success');
                     
-                    // Log call stats
                     const duration = Date.now() - State.callStats.startTime;
-                    debugLog(`⏱️ Call established in ${duration}ms, ICE candidates: ${State.callStats.iceCandidates}`);
+                    debugLog(`⏱️ Call established in ${duration}ms, ${State.callStats.iceCandidates} ICE candidates`);
+                    
+                    if(duration > 5000) {
+                        debugLog("⚠️ Call took >5s - possible NAT issues", 'warning');
+                    }
                 });
 
                 call.on('close', () => {
@@ -1215,21 +1348,37 @@ const firebaseConfig = {
                 call.on('error', (err) => {
                     debugLog(`📞 Call error: ${err.message}`, 'error');
                     App.ui.showCallError(err.message);
+                    this.endCall();
                 });
             }
 
             endCall() {
+                if (State.callTimeout) {
+                    clearTimeout(State.callTimeout);
+                    State.callTimeout = null;
+                }
+                
                 debugLog("🛑 Ending call...");
+                App.ui.showCallDuration(false);
                 this.stopRing();
                 
+                State.callState = CallState.ENDED;
+                
                 if (State.currentCall) {
-                    State.currentCall.close();
+                    try { State.currentCall.close(); } catch(e) {}
                     State.currentCall = null;
+                }
+                
+                if (State.tempCall) {
+                    try { State.tempCall.close(); } catch(e) {}
+                    State.tempCall = null;
                 }
                 
                 if (State.localStream) {
                     State.localStream.getTracks().forEach(t => {
-                        try { t.stop(); } catch(e) {}
+                        try { 
+                            t.stop(); 
+                        } catch(e) {}
                     });
                     State.localStream = null;
                 }
@@ -1238,12 +1387,13 @@ const firebaseConfig = {
                 document.getElementById('remote-video').srcObject = null;
                 document.getElementById('local-video').srcObject = null;
                 document.getElementById('local-video').style.display = 'block';
+                document.getElementById('local-video').style.transform = '';
                 document.getElementById('call-status-text').style.display = 'block';
                 document.getElementById('call-status-text').innerText = "Preparing...";
                 
                 this.updateCallControls();
-                this.tempCall = null;
-                State.callStats = { startTime: null, iceCandidates: 0 };
+                State.callState = CallState.IDLE;
+                State.callStats = { startTime: null, iceCandidates: 0, connectionAttempts: 0, bytesSent: 0, bytesReceived: 0 };
             }
 
             toggleAudio() {
@@ -1251,6 +1401,7 @@ const firebaseConfig = {
                 const track = State.localStream.getAudioTracks()[0];
                 if(track) {
                     track.enabled = !track.enabled;
+                    State.isMuted = !track.enabled;
                     this.updateCallControls();
                     debugLog(`🎤 Audio ${track.enabled ? 'enabled' : 'muted'}`);
                 }
@@ -1261,6 +1412,7 @@ const firebaseConfig = {
                 const track = State.localStream.getVideoTracks()[0];
                 if(track) {
                     track.enabled = !track.enabled;
+                    State.isVideoOff = !track.enabled;
                     this.updateCallControls();
                     debugLog(`📹 Video ${track.enabled ? 'enabled' : 'disabled'}`);
                 }
@@ -1288,7 +1440,7 @@ const firebaseConfig = {
 
             async flipCamera() {
                 if(!State.localStream || !State.currentCall) {
-                    App.ui.toast("Must be in a call to switch camera", 'warning');
+                    App.ui.toast("Must be in call", 'warning');
                     return;
                 }
                 
@@ -1296,13 +1448,17 @@ const firebaseConfig = {
                 if(!videoTrack) return;
                 
                 const currentSettings = videoTrack.getSettings();
-                const isFront = currentSettings.facingMode === 'user';
+                const isFront = currentSettings.facingMode === 'user' || !currentSettings.facingMode;
                 const newMode = isFront ? 'environment' : 'user';
                 
                 try {
                     App.ui.toast("Switching camera...", 'info');
                     const newStream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: newMode },
+                        video: { 
+                            facingMode: newMode,
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        },
                         audio: true
                     });
                     
@@ -1319,7 +1475,7 @@ const firebaseConfig = {
                     State.localStream = newStream;
                     document.getElementById('local-video').srcObject = newStream;
                     
-                    App.ui.toast("Camera switched", 'success');
+                    App.ui.toast("✅ Camera switched", 'success');
                     debugLog("✅ Camera switched");
                 } catch(e) {
                     App.ui.toast("Cannot switch camera", 'error');
@@ -1338,20 +1494,18 @@ const firebaseConfig = {
         };
 
         App.contacts = App.chat;
-
-        // Attach to window for HTML events
         window.App = App;
 
-        // Validate Firebase config
+        // Validate config
         if(!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('YOUR_')) {
-            alert("❌ ERROR: You MUST replace firebaseConfig with your actual Firebase credentials!\n\nGet them from Firebase Console → Project Settings → General");
+            alert("❌ ERROR: Replace firebaseConfig with your actual Firebase credentials!");
             debugLog("❌ Firebase config not set", 'error');
         }
 
         // Firebase Auth Listener
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                debugLog(`🔄 Auth state: User ${user.uid} logged in`);
+                debugLog(`🔄 Auth: User ${user.uid} logged in`);
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if(userDoc.exists()) {
@@ -1359,57 +1513,50 @@ const firebaseConfig = {
                         App.ui.showApp();
                         await App.chat.loadContacts();
                         App.call.init();
-                        App.ui.initTheme();
-                        debugLog("✅ App fully loaded");
+                        debugLog("✅ App loaded successfully");
                     } else {
-                        debugLog("❌ User document not found", 'error');
+                        debugLog("❌ User doc not found", 'error');
                         App.ui.toast("User data not found", 'error');
                         await signOut(auth);
                     }
                 } catch (e) {
-                    debugLog(`❌ Auth state error: ${e.message}`, 'error');
-                    App.ui.toast("Error loading user data", 'error');
+                    debugLog(`❌ Auth error: ${e.message}`, 'error');
                 }
             } else {
-                debugLog("🔄 Auth state: No user");
+                debugLog("🔄 Auth: No user");
                 State.user = null;
                 App.ui.showAuth();
             }
         });
 
-        // Cleanup on page unload
+        // Cleanup on unload
         window.addEventListener('beforeunload', () => {
-            debugLog("🧹 Cleaning up before unload...");
-            if(State.currentCall) App.call.endCall();
+            debugLog("🧹 Cleaning up...");
+            if(State.callState !== CallState.IDLE) App.call.endCall();
             if(State.peer) State.peer.destroy();
         });
 
-        // Browser compatibility checks
+        // Browser checks
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            App.ui.toast("⚠️ Your browser doesn't support video calls", 'error');
+            App.ui.toast("⚠️ Browser doesn't support video calls", 'error');
             debugLog("❌ getUserMedia not supported", 'error');
         }
 
-        // Check for HTTPS
-        if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-            App.ui.toast("⚠️ HTTPS REQUIRED for video calls!", 'error');
-            debugLog("❌ Not using HTTPS", 'error');
+        // HTTPS check
+        if (location.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(location.hostname)) {
+            App.ui.toast("⚠️ HTTPS REQUIRED!", 'error');
+            debugLog("❌ Not HTTPS", 'error');
         }
 
-        // Check for ad blockers
+        // Ad blocker check
         setTimeout(() => {
             if(!auth) {
-                App.ui.toast("⚠️ Firebase blocked by ad blocker?", 'error');
-                debugLog("❌ Firebase auth not loaded", 'error');
+                App.ui.toast("⚠️ Blocked by ad blocker?", 'error');
+                debugLog("❌ Firebase blocked", 'error');
             }
         }, 2000);
 
-        // --- DEBUG PANEL CONTROLS ---
-        window.toggleDebug = function() {
-            App.ui.toggleDebugPanel();
-        };
-        
-        debugLog("🚀 Application initialized");
+        debugLog("🚀 Application initialized with PeerJS v1.5.4");
 
     </script>
 </body>
